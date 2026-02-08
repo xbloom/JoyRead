@@ -7,6 +7,7 @@ struct CatalogView: View {
     
     @StateObject private var viewModel = CatalogViewModel()
     @Environment(\.dismiss) var dismiss
+    @State private var refreshID = UUID()
     
     var body: some View {
         NavigationView {
@@ -50,6 +51,17 @@ struct CatalogView: View {
                                             .foregroundColor(.secondary)
                                         Text("共 \(viewModel.chapters.count) 章")
                                             .foregroundColor(.secondary)
+                                        
+                                        Spacer()
+                                        
+                                        // 缓存统计
+                                        HStack(spacing: 5) {
+                                            Image(systemName: "arrow.down.circle.fill")
+                                                .foregroundColor(.green)
+                                            Text("\(getCachedCount()) 章已缓存")
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .font(.caption)
                                     }
                                 }
                                 .padding(.vertical, 5)
@@ -63,6 +75,7 @@ struct CatalogView: View {
                                     chapter: chapter,
                                     isCurrent: chapter.url == currentChapterURL
                                 )
+                                .id("\(chapter.id)-\(refreshID)")
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     onSelectChapter(chapter)
@@ -76,6 +89,14 @@ struct CatalogView: View {
             .navigationTitle("目录")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button(action: {
+                        refreshCacheStatus()
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("关闭") {
                         dismiss()
@@ -90,11 +111,20 @@ struct CatalogView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
+    
+    private func getCachedCount() -> Int {
+        viewModel.chapters.filter { ChapterCacheManager.shared.isCached(url: $0.url) }.count
+    }
+    
+    private func refreshCacheStatus() {
+        refreshID = UUID()
+    }
 }
 
 struct ChapterRowView: View {
     let chapter: ChapterListItem
     let isCurrent: Bool
+    @State private var isCached: Bool = false
     
     var body: some View {
         HStack {
@@ -104,12 +134,29 @@ struct ChapterRowView: View {
             
             Spacer()
             
-            if isCurrent {
-                Image(systemName: "book.fill")
-                    .foregroundColor(.blue)
-                    .font(.caption)
+            HStack(spacing: 8) {
+                // 缓存状态图标
+                if isCached {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                }
+                
+                // 当前阅读标记
+                if isCurrent {
+                    Image(systemName: "book.fill")
+                        .foregroundColor(.blue)
+                        .font(.caption)
+                }
             }
         }
         .padding(.vertical, 2)
+        .onAppear {
+            checkCacheStatus()
+        }
+    }
+    
+    private func checkCacheStatus() {
+        isCached = ChapterCacheManager.shared.isCached(url: chapter.url)
     }
 }

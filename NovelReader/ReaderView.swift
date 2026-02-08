@@ -7,6 +7,7 @@ struct ReaderView: View {
     @StateObject private var viewModel: NovelReaderViewModel
     @Environment(\.dismiss) var dismiss
     @State private var showCatalog = false
+    @State private var showDownload = false
     
     init(book: Book, bookshelfViewModel: BookshelfViewModel) {
         self.book = book
@@ -96,10 +97,22 @@ struct ReaderView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        viewModel.showURLInput = true
-                    }) {
-                        Image(systemName: "gearshape")
+                    Menu {
+                        Button(action: {
+                            viewModel.showURLInput = true
+                        }) {
+                            Label("设置", systemImage: "gearshape")
+                        }
+                        
+                        if book.catalogURL != nil {
+                            Button(action: {
+                                showDownload = true
+                            }) {
+                                Label("下载管理", systemImage: "arrow.down.circle")
+                            }
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
                     }
                 }
             }
@@ -115,6 +128,16 @@ struct ReaderView: View {
                             viewModel.currentURL = chapter.url
                             viewModel.loadChapter()
                         }
+                    )
+                }
+            }
+            .sheet(isPresented: $showDownload) {
+                if let catalogURL = book.catalogURL {
+                    DownloadView(
+                        catalogURL: catalogURL,
+                        titleSelector: book.titleSelector,
+                        contentSelector: book.contentSelector,
+                        nextChapterSelector: book.nextChapterSelector
                     )
                 }
             }
