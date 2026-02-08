@@ -17,6 +17,9 @@ class NovelReaderViewModel: ObservableObject {
     @Published var contentSelector: String = "#readcontent"
     @Published var nextChapterSelector: String = "a.next"
     
+    // 解析模式
+    @Published var parseMode: ParseMode = .regex
+    
     var hasNextChapter: Bool {
         nextChapterURL != nil
     }
@@ -43,7 +46,8 @@ class NovelReaderViewModel: ObservableObject {
                     url: currentURL,
                     titleSelector: titleSelector,
                     contentSelector: contentSelector,
-                    nextChapterSelector: nextChapterSelector
+                    nextChapterSelector: nextChapterSelector,
+                    mode: parseMode
                 )
                 
                 await MainActor.run {

@@ -7,8 +7,13 @@ struct NovelChapter {
     let nextChapterURL: String?
 }
 
+enum ParseMode {
+    case webView
+    case regex
+}
+
 class HTMLParser: NSObject {
-    func parseNovelPage(url: String, titleSelector: String, contentSelector: String, nextChapterSelector: String) async throws -> NovelChapter {
+    func parseNovelPage(url: String, titleSelector: String, contentSelector: String, nextChapterSelector: String, mode: ParseMode = .regex) async throws -> NovelChapter {
         guard let pageURL = URL(string: url) else {
             throw NSError(domain: "InvalidURL", code: -1, userInfo: [NSLocalizedDescriptionKey: "无效的URL"])
         }
@@ -19,8 +24,177 @@ class HTMLParser: NSObject {
             throw NSError(domain: "EncodingError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法解析HTML"])
         }
         
-        // 使用JavaScript在WebView中解析
-        return try await parseHTMLWithWebView(html: html, baseURL: pageURL, titleSelector: titleSelector, contentSelector: contentSelector, nextChapterSelector: nextChapterSelector)
+        switch mode {
+        case .webView:
+            return try await parseHTMLWithWebView(html: html, baseURL: pageURL, titleSelector: titleSelector, contentSelector: contentSelector, nextChapterSelector: nextChapterSelector)
+        case .regex:
+            return try parseHTMLWithRegex(html: html, baseURL: pageURL, titleSelector: titleSelector, contentSelector: contentSelector, nextChapterSelector: nextChapterSelector)
+        }
+    }
+    
+    private func parseHTMLWithRegex(html: String, baseURL: URL, titleSelector: String, contentSelector: String, nextChapterSelector: String) throws -> NovelChapter {
+        // 简单的CSS选择器解析（支持基本的标签、id、class选择器）
+        func extractContent(from html: String, selector: String) -> String? {
+            var pattern = ""
+            
+            if selector.hasPrefix("#") {
+                // ID选择器: #readcontent
+                let id = String(selector.dropFirst())
+                
+                // 特殊处理：如果是 #readcontent，直接查找 id="showReading" 的内容
+                if id == "readcontent" {
+                    // 查找 id="showReading" 的内容
+                    guard let showReadingRange = html.range(of: "id=\"showReading\"", options: .caseInsensitive) else {
+                        // 如果没有 showReading，就用原来的逻辑
+                        return extractById(html: html, id: id)
+                    }
+                    return extractById(html: html, id: "showReading")
+                }
+                
+                return extractById(html: html, id: id)
+                
+            } else if selector.hasPrefix(".") {
+                // Class选择器: .content
+                let className = String(selector.dropFirst())
+                pattern = "<[^>]*class=[\"'][^\"']*\(className)[^\"']*[\"'][^>]*>([\\s\\S]*?)</[^>]*>"
+            } else {
+                // 标签选择器: h1
+                pattern = "<\(selector)[^>]*>([\\s\\S]*?)</\(selector)>"
+            }
+            
+            guard !pattern.isEmpty else { return nil }
+            
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+                return nil
+            }
+            
+            let range = NSRange(html.startIndex..., in: html)
+            guard let match = regex.firstMatch(in: html, range: range),
+                  let contentRange = Range(match.range(at: 1), in: html) else {
+                return nil
+            }
+            
+            var content = String(html[contentRange])
+            
+            // 移除HTML标签
+            content = content.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            // 解码HTML实体
+            content = content.replacingOccurrences(of: "&nbsp;", with: " ")
+            content = content.replacingOccurrences(of: "&lt;", with: "<")
+            content = content.replacingOccurrences(of: "&gt;", with: ">")
+            content = content.replacingOccurrences(of: "&amp;", with: "&")
+            content = content.replacingOccurrences(of: "&quot;", with: "\"")
+            content = content.replacingOccurrences(of: "&#39;", with: "'")
+            content = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            return content.isEmpty ? nil : content
+        }
+        
+        func extractById(html: String, id: String) -> String? {
+            guard let idRange = html.range(of: "id=\"\(id)\"", options: .caseInsensitive) else {
+                return nil
+            }
+            
+            // 从 id 位置往前找到标签名
+            let beforeId = html[..<idRange.lowerBound]
+            guard let tagStart = beforeId.lastIndex(of: "<") else {
+                return nil
+            }
+            
+            // 提取标签名
+            let afterTagStart = html[html.index(after: tagStart)...]
+            guard let spaceOrBracket = afterTagStart.firstIndex(where: { $0 == " " || $0 == ">" }) else {
+                return nil
+            }
+            let tagName = String(afterTagStart[..<spaceOrBracket])
+            
+            // 找到这个标签的结束位置
+            guard let contentStart = html[idRange.upperBound...].firstIndex(of: ">") else {
+                return nil
+            }
+            let contentStartIndex = html.index(after: contentStart)
+            
+            // 查找结束标签
+            let endTag = "</\(tagName)>"
+            guard let endRange = html[contentStartIndex...].range(of: endTag, options: .caseInsensitive) else {
+                return nil
+            }
+            
+            var content = String(html[contentStartIndex..<endRange.lowerBound])
+            
+            // 移除script和style标签及其内容
+            content = content.replacingOccurrences(of: "<script[^>]*>[\\s\\S]*?</script>", with: "", options: .regularExpression)
+            content = content.replacingOccurrences(of: "<style[^>]*>[\\s\\S]*?</style>", with: "", options: .regularExpression)
+            
+            // 将<br>和<p>标签转换为换行
+            content = content.replacingOccurrences(of: "<br[^>]*>", with: "\n", options: .regularExpression)
+            content = content.replacingOccurrences(of: "</p>", with: "\n\n", options: .regularExpression)
+            content = content.replacingOccurrences(of: "<p[^>]*>", with: "", options: .regularExpression)
+            
+            // 移除所有HTML标签
+            content = content.replacingOccurrences(of: "<[^>]+>", with: "", options: .regularExpression)
+            
+            // 解码HTML实体
+            content = content.replacingOccurrences(of: "&nbsp;", with: " ")
+            content = content.replacingOccurrences(of: "&lt;", with: "<")
+            content = content.replacingOccurrences(of: "&gt;", with: ">")
+            content = content.replacingOccurrences(of: "&amp;", with: "&")
+            content = content.replacingOccurrences(of: "&quot;", with: "\"")
+            content = content.replacingOccurrences(of: "&#39;", with: "'")
+            
+            // 清理多余空白，但保留段落换行
+            let lines = content.components(separatedBy: .newlines)
+            let cleanedLines = lines.map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            content = cleanedLines.joined(separator: "\n")
+            
+            return content.isEmpty ? nil : content
+        }
+        
+        func extractHref(from html: String, selector: String) -> String? {
+            // 提取链接: a.next
+            var pattern = ""
+            
+            if selector.contains(".") {
+                let parts = selector.split(separator: ".")
+                if parts.count == 2 {
+                    let tag = parts[0]
+                    let className = parts[1]
+                    pattern = "<\(tag)[^>]*class=[\"'][^\"']*\(className)[^\"']*[\"'][^>]*href=[\"']([^\"']+)[\"']"
+                }
+            } else {
+                pattern = "<\(selector)[^>]*href=[\"']([^\"']+)[\"']"
+            }
+            
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                return nil
+            }
+            
+            let range = NSRange(html.startIndex..., in: html)
+            guard let match = regex.firstMatch(in: html, range: range),
+                  let hrefRange = Range(match.range(at: 1), in: html) else {
+                return nil
+            }
+            
+            var href = String(html[hrefRange])
+            
+            // 处理相对URL
+            if !href.hasPrefix("http") {
+                if href.hasPrefix("/") {
+                    href = baseURL.scheme! + "://" + baseURL.host! + href
+                } else {
+                    href = baseURL.deletingLastPathComponent().appendingPathComponent(href).absoluteString
+                }
+            }
+            
+            return href
+        }
+        
+        let title = extractContent(from: html, selector: titleSelector)
+        let content = extractContent(from: html, selector: contentSelector) ?? "无法找到内容"
+        let nextURL = extractHref(from: html, selector: nextChapterSelector)
+        
+        return NovelChapter(title: title, content: content, nextChapterURL: nextURL)
     }
     
     private func parseHTMLWithWebView(html: String, baseURL: URL, titleSelector: String, contentSelector: String, nextChapterSelector: String) async throws -> NovelChapter {

@@ -4,7 +4,7 @@ SCHEME = NovelReaderApp
 PROJECT = NovelReaderApp.xcodeproj
 DERIVED_DATA = $(HOME)/Library/Developer/Xcode/DerivedData/NovelReaderApp-dgpxpeizblwacqfuezvplbaupayy
 
-.PHONY: install clean build
+.PHONY: install clean build test
 
 install: build
 	ideviceinstaller install $(DERIVED_DATA)/Build/Products/Release-iphoneos/NovelReaderApp.app
@@ -20,3 +20,7 @@ build:
 
 clean:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) clean
+
+test:
+	@echo "运行业务逻辑测试..."
+	@swift test

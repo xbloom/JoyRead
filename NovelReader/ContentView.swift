@@ -96,6 +96,14 @@ struct URLInputView: View {
                     TextField("下一章选择器", text: $viewModel.nextChapterSelector)
                 }
                 
+                Section(header: Text("解析模式")) {
+                    Picker("解析方式", selection: $viewModel.parseMode) {
+                        Text("正则表达式（快速）").tag(ParseMode.regex)
+                        Text("WebView（兼容性好）").tag(ParseMode.webView)
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+                
                 Button("开始阅读") {
                     viewModel.loadChapter()
                     viewModel.showURLInput = false
