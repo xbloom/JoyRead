@@ -5,9 +5,11 @@ struct ReaderView: View {
     let bookshelfViewModel: BookshelfViewModel
     
     @StateObject private var viewModel: NovelReaderViewModel
+    @StateObject private var settingsManager = ReadingSettingsManager()
     @Environment(\.dismiss) var dismiss
     @State private var showCatalog = false
     @State private var showDownload = false
+    @State private var showSettings = false
     
     init(book: Book, bookshelfViewModel: BookshelfViewModel) {
         self.book = book
@@ -40,20 +42,27 @@ struct ReaderView: View {
                     }
                 } else {
                     ScrollView {
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: settingsManager.settings.paragraphSpacing) {
                             if let title = viewModel.chapterTitle {
                                 Text(title)
-                                    .font(.title)
+                                    .font(customFont(size: settingsManager.settings.fontSize + 4))
                                     .bold()
-                                    .padding(.horizontal)
+                                    .foregroundColor(settingsManager.settings.theme.textColor)
                             }
                             
-                            Text(viewModel.chapterContent)
-                                .font(.body)
-                                .lineSpacing(8)
-                                .padding()
+                            // 将内容按段落分割并渲染
+                            ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
+                                Text("　　\(paragraph)")
+                                    .font(customFont(size: settingsManager.settings.fontSize))
+                                    .lineSpacing(settingsManager.settings.lineSpacing)
+                                    .foregroundColor(settingsManager.settings.theme.textColor)
+                            }
                         }
+                        .padding(.horizontal, settingsManager.settings.horizontalPadding)
+                        .padding(.vertical, 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
+                    .background(settingsManager.settings.theme.backgroundColor)
                     
                     HStack {
                         Button(action: {
@@ -62,6 +71,15 @@ struct ReaderView: View {
                             Label("上一章", systemImage: "chevron.left")
                         }
                         .disabled(!viewModel.hasPreviousChapter)
+                        
+                        Spacer()
+                        
+                        // 阅读设置按钮
+                        Button(action: {
+                            showSettings = true
+                        }) {
+                            Label("设置", systemImage: "textformat.size")
+                        }
                         
                         Spacer()
                         
@@ -84,6 +102,7 @@ struct ReaderView: View {
                         .disabled(!viewModel.hasNextChapter)
                     }
                     .padding()
+                    .background(settingsManager.settings.theme.backgroundColor.opacity(0.95))
                 }
             }
             .navigationTitle(book.title)
@@ -119,6 +138,9 @@ struct ReaderView: View {
             .sheet(isPresented: $viewModel.showURLInput) {
                 URLInputView(viewModel: viewModel)
             }
+            .sheet(isPresented: $showSettings) {
+                ReadingSettingsView(settingsManager: settingsManager)
+            }
             .sheet(isPresented: $showCatalog) {
                 if let catalogURL = book.catalogURL {
                     CatalogView(
@@ -149,6 +171,14 @@ struct ReaderView: View {
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
+    }
+    
+    private func customFont(size: CGFloat) -> Font {
+        if settingsManager.settings.fontName == "System" {
+            return .system(size: size)
+        } else {
+            return .custom(settingsManager.settings.fontName, size: size)
+        }
     }
     
     private func saveProgress() {

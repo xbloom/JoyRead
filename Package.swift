@@ -16,7 +16,9 @@ let package = Package(
                 "HTMLParser.swift",
                 "NovelReaderViewModel.swift",
                 "Book.swift",
-                "BookshelfViewModel.swift"
+                "BookshelfViewModel.swift",
+                "ChapterCacheManager.swift",
+                "ReadingSettings.swift"
             ]
         ),
         .testTarget(
