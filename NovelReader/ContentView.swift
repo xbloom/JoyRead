@@ -70,6 +70,9 @@ struct ContentView: View {
             .sheet(isPresented: $viewModel.showURLInput) {
                 URLInputView(viewModel: viewModel)
             }
+            .onAppear {
+                viewModel.showURLInput = true
+            }
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
@@ -77,13 +80,12 @@ struct ContentView: View {
 
 struct URLInputView: View {
     @ObservedObject var viewModel: NovelReaderViewModel
-    @State private var urlText = ""
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("输入小说章节URL")) {
-                    TextField("https://www.cuoceng.com/book/...", text: $urlText)
+                    TextField("输入章节URL", text: $viewModel.currentURL)
                         .autocapitalization(.none)
                         .keyboardType(.URL)
                 }
@@ -95,11 +97,10 @@ struct URLInputView: View {
                 }
                 
                 Button("开始阅读") {
-                    viewModel.currentURL = urlText
                     viewModel.loadChapter()
                     viewModel.showURLInput = false
                 }
-                .disabled(urlText.isEmpty)
+                .disabled(viewModel.currentURL.isEmpty)
             }
             .navigationTitle("设置")
             .navigationBarItems(trailing: Button("取消") {

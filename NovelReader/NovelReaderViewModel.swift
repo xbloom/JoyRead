@@ -6,7 +6,7 @@ class NovelReaderViewModel: ObservableObject {
     @Published var chapterContent: String = ""
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
-    @Published var showURLInput: Bool = true
+    @Published var showURLInput: Bool = false
     
     @Published var currentURL: String = "https://www.cuoceng.com/book/95e1a104-af57-421b-aa25-e77bdab6e51c/7a84f4f5-85c3-453e-b18d-f8c7f77be9f0.html"
     @Published var nextChapterURL: String?

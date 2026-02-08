@@ -16,6 +16,6 @@ targets:
       PRODUCT_BUNDLE_IDENTIFIER: com.novelreader.NovelReaderApp
       TARGETED_DEVICE_FAMILY: "2"
       CODE_SIGN_STYLE: Automatic
-      DEVELOPMENT_TEAM: ""
+      DEVELOPMENT_TEAM: "49NSXZJZ54"
     attributes:
       ProvisioningStyle: Automatic
