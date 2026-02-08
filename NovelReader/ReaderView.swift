@@ -278,6 +278,11 @@ struct ReaderView: View {
             .navigationTitle(book.title)
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarHidden(!showToolbar)
+            .onAppear {
+                configureNavigationBarAppearance()
+                viewModel.loadChapter()
+                loadCatalogForNavigation()
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("返回") {
@@ -335,6 +340,7 @@ struct ReaderView: View {
                 }
             }
             .onAppear {
+                configureNavigationBarAppearance()
                 viewModel.loadChapter()
                 loadCatalogForNavigation()
             }
@@ -346,6 +352,9 @@ struct ReaderView: View {
                 if let title = newTitle {
                     showPageChangeHint(title)
                 }
+            }
+            .onChange(of: settingsManager.settings.theme) { _ in
+                configureNavigationBarAppearance()
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -380,6 +389,30 @@ struct ReaderView: View {
             "Yuanti SC"
         ]
         return systemFonts.contains(fontName)
+    }
+    
+    private func configureNavigationBarAppearance() {
+        let appearance = UINavigationBarAppearance()
+        
+        // 设置背景色和透明度
+        let backgroundColor = UIColor(settingsManager.settings.theme.backgroundColor)
+        appearance.backgroundColor = backgroundColor.withAlphaComponent(0.95)
+        
+        // 设置标题颜色
+        let textColor = UIColor(settingsManager.settings.theme.textColor)
+        appearance.titleTextAttributes = [.foregroundColor: textColor]
+        appearance.largeTitleTextAttributes = [.foregroundColor: textColor]
+        
+        // 设置按钮颜色
+        appearance.buttonAppearance.normal.titleTextAttributes = [.foregroundColor: textColor]
+        
+        // 添加阴影效果
+        appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)
+        
+        // 应用外观
+        UINavigationBar.appearance().standardAppearance = appearance
+        UINavigationBar.appearance().scrollEdgeAppearance = appearance
+        UINavigationBar.appearance().compactAppearance = appearance
     }
     
     private func saveProgress() {
