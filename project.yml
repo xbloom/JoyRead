@@ -1,0 +1,21 @@
+name: NovelReaderApp
+options:
+  bundleIdPrefix: com.novelreader
+  deploymentTarget:
+    iOS: "15.0"
+targets:
+  NovelReaderApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - NovelReader
+    info:
+      path: NovelReader/Info.plist
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.novelreader.NovelReaderApp
+      TARGETED_DEVICE_FAMILY: "2"
+      CODE_SIGN_STYLE: Automatic
+      DEVELOPMENT_TEAM: ""
+    attributes:
+      ProvisioningStyle: Automatic
