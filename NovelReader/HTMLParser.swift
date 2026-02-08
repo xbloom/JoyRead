@@ -7,12 +7,182 @@ struct NovelChapter {
     let nextChapterURL: String?
 }
 
+struct ChapterListItem: Identifiable {
+    let id: String  // chapterId
+    let title: String
+    let url: String
+}
+
+struct BookInfo {
+    let bookId: String
+    let title: String
+    let author: String?
+    let coverURL: String?
+    let catalogURL: String
+}
+
 enum ParseMode {
     case webView
     case regex
 }
 
 class HTMLParser: NSObject {
+    /// 解析目录页面，获取书籍信息和章节列表
+    /// - Parameter catalogURL: 目录页面URL，格式如 https://www.cuoceng.com/book/chapter/{bookId}.html
+    /// - Returns: (书籍信息, 章节列表)
+    func parseCatalog(url catalogURL: String) async throws -> (bookInfo: BookInfo, chapters: [ChapterListItem]) {
+        guard let url = URL(string: catalogURL) else {
+            throw NSError(domain: "InvalidURL", code: -1, userInfo: [NSLocalizedDescriptionKey: "无效的目录URL"])
+        }
+        
+        // 下载HTML内容
+        let (data, _) = try await URLSession.shared.data(from: url)
+        guard let html = String(data: data, encoding: .utf8) else {
+            throw NSError(domain: "EncodingError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法解析HTML"])
+        }
+        
+        // 提取bookId
+        guard let bookId = extractBookId(from: catalogURL) else {
+            throw NSError(domain: "ParseError", code: -1, userInfo: [NSLocalizedDescriptionKey: "无法提取bookId"])
+        }
+        
+        // 提取书名
+        let bookTitle = extractBookTitle(from: html) ?? "未知书名"
+        
+        // 提取作者
+        let author = extractAuthor(from: html)
+        
+        // 提取封面URL（如果有）
+        let coverURL = extractCoverURL(from: html)
+        
+        // 创建书籍信息
+        let bookInfo = BookInfo(
+            bookId: bookId,
+            title: bookTitle,
+            author: author,
+            coverURL: coverURL,
+            catalogURL: catalogURL
+        )
+        
+        // 提取章节列表
+        let chapters = try extractChapters(from: html, bookId: bookId)
+        
+        return (bookInfo, chapters)
+    }
+    
+    /// 提取书名
+    private func extractBookTitle(from html: String) -> String? {
+        // 从 <h1>木叶手记 目录</h1> 提取
+        let pattern = "<h1>([^<]+)\\s*目录</h1>"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              let range = Range(match.range(at: 1), in: html) else {
+            return nil
+        }
+        
+        var title = String(html[range])
+        title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? nil : title
+    }
+    
+    /// 提取作者
+    private func extractAuthor(from html: String) -> String? {
+        // 从 <span>作者：<a href="...">短腿跑得慢</a></span> 提取
+        let pattern = "作者：<a[^>]*>([^<]+)</a>"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+              let range = Range(match.range(at: 1), in: html) else {
+            return nil
+        }
+        
+        var author = String(html[range])
+        author = author.trimmingCharacters(in: .whitespacesAndNewlines)
+        return author.isEmpty ? nil : author
+    }
+    
+    /// 提取封面URL
+    private func extractCoverURL(from html: String) -> String? {
+        // 尝试从多个可能的位置提取封面
+        // 1. 查找 class="bookCover" 附近的 img 标签
+        let patterns = [
+            "<img[^>]*src=[\"']([^\"']*book[^\"']*)[\"']",
+            "<img[^>]*src=[\"']([^\"']*cover[^\"']*)[\"']",
+        ]
+        
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+               let match = regex.firstMatch(in: html, range: NSRange(html.startIndex..., in: html)),
+               let range = Range(match.range(at: 1), in: html) {
+                var coverURL = String(html[range])
+                
+                // 处理相对URL
+                if !coverURL.hasPrefix("http") {
+                    if coverURL.hasPrefix("//") {
+                        coverURL = "https:" + coverURL
+                    } else if coverURL.hasPrefix("/") {
+                        coverURL = "https://www.cuoceng.com" + coverURL
+                    }
+                }
+                
+                return coverURL
+            }
+        }
+        
+        return nil
+    }
+    
+    /// 提取章节列表
+    private func extractChapters(from html: String, bookId: String) throws -> [ChapterListItem] {
+        // 使用正则表达式提取章节列表
+        // 匹配格式: <a href="/book/{bookId}/{chapterId}.html">章节标题</a>
+        let pattern = "<a href=\"/book/\(bookId)/([a-f0-9-]+)\\.html\">\\s*<span[^>]*>([^<]+)</span>\\s*</a>"
+        
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+            throw NSError(domain: "RegexError", code: -1, userInfo: [NSLocalizedDescriptionKey: "正则表达式创建失败"])
+        }
+        
+        let range = NSRange(html.startIndex..., in: html)
+        let matches = regex.matches(in: html, range: range)
+        
+        var chapters: [ChapterListItem] = []
+        for match in matches {
+            guard match.numberOfRanges >= 3,
+                  let chapterIdRange = Range(match.range(at: 1), in: html),
+                  let titleRange = Range(match.range(at: 2), in: html) else {
+                continue
+            }
+            
+            let chapterId = String(html[chapterIdRange])
+            var title = String(html[titleRange])
+            
+            // 清理标题中的HTML实体
+            title = title.replacingOccurrences(of: "&nbsp;", with: " ")
+            title = title.replacingOccurrences(of: "&lt;", with: "<")
+            title = title.replacingOccurrences(of: "&gt;", with: ">")
+            title = title.replacingOccurrences(of: "&amp;", with: "&")
+            title = title.replacingOccurrences(of: "&quot;", with: "\"")
+            title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+            
+            let chapterURL = "https://www.cuoceng.com/book/\(bookId)/\(chapterId).html"
+            
+            chapters.append(ChapterListItem(id: chapterId, title: title, url: chapterURL))
+        }
+        
+        return chapters
+    }
+    
+    /// 从URL中提取bookId
+    private func extractBookId(from urlString: String) -> String? {
+        // 从 https://www.cuoceng.com/book/chapter/{bookId}.html 提取 bookId
+        let pattern = "/book/chapter/([a-f0-9-]+)\\.html"
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = regex.firstMatch(in: urlString, range: NSRange(urlString.startIndex..., in: urlString)),
+              let range = Range(match.range(at: 1), in: urlString) else {
+            return nil
+        }
+        return String(urlString[range])
+    }
+    
     func parseNovelPage(url: String, titleSelector: String, contentSelector: String, nextChapterSelector: String, mode: ParseMode = .regex) async throws -> NovelChapter {
         guard let pageURL = URL(string: url) else {
             throw NSError(domain: "InvalidURL", code: -1, userInfo: [NSLocalizedDescriptionKey: "无效的URL"])

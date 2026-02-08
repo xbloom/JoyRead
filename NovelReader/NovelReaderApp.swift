@@ -4,7 +4,7 @@ import SwiftUI
 struct NovelReaderApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            BookshelfView()
         }
     }
 }

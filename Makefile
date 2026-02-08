@@ -21,6 +21,7 @@ build:
 clean:
 	xcodebuild -project $(PROJECT) -scheme $(SCHEME) clean
 
+# 在macOS上运行单元测试（仅测试业务逻辑）
 test:
-	@echo "运行业务逻辑测试..."
+	@echo "运行业务逻辑测试（macOS环境）..."
 	@swift test
