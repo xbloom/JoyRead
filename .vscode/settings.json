@@ -1,0 +1,11 @@
+{
+  "swift.sourcekit-lsp.serverArguments": [
+    "-Xswiftc", "-sdk",
+    "-Xswiftc", "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk",
+    "-Xswiftc", "-target",
+    "-Xswiftc", "arm64-apple-ios15.0"
+  ],
+  "files.exclude": {
+    "**/.build": true
+  }
+}

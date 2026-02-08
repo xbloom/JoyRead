@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "NovelReader",
-    platforms: [.iOS(.v15), .macOS(.v12)],
+    platforms: [.iOS(.v15)],
     products: [
         .library(name: "NovelReader", targets: ["NovelReader"]),
     ],
