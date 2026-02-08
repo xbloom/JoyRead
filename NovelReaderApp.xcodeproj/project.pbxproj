@@ -22,6 +22,15 @@
 		E3FB548114DD25D82B95E6BB /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256BA70AEEE552CCCD59A4F7 /* DownloadManager.swift */; };
 2FF32A559C9344A4867F0DFF /* ReadingSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = B357B32686684B3E8964C6CD /* ReadingSettings.swift */; };
 		B564208E77B64D8D950A3E20 /* ReadingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B207A768BD914EC3A5DA4FCE /* ReadingSettingsView.swift */; };
+		ADF86A11DCA04F29B38AF3C2 /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 5F15F6372A7548D58B93004D /* NotoSansSC-Regular.otf */; };
+		A63616F014F6484E8A66D5B0 /* NotoSerifSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = CF4714380A5D4C1391512008 /* NotoSerifSC-Regular.otf */; };
+		04711682575B401783FFCFFA /* ZCOOLKuaiLe-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1DDF6F53E21842E6AB61B019 /* ZCOOLKuaiLe-Regular.ttf */; };
+		C1C91846CC9C4C6B8961547F /* ZCOOLQingKeHuangYou-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 95E2879D81194DB4A89FDE77 /* ZCOOLQingKeHuangYou-Regular.ttf */; };
+		42B2DD4F4CA74D7B84890D9D /* ZCOOLXiaoWei-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2DDC2AA7B6D746CCAC669DBD /* ZCOOLXiaoWei-Regular.ttf */; };
+		B0397D8228D4495886EEA9D2 /* MaShanZheng-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9B328C0424AF4F4F840BEF1C /* MaShanZheng-Regular.ttf */; };
+		DA2F90250DB74BBEA471BF73 /* LiuJianMaoCao-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B9C75BBC665D44EE848F57FF /* LiuJianMaoCao-Regular.ttf */; };
+		6334865B62F04F448A556250 /* LongCang-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = BD683E44BEC34F4DB482EC7B /* LongCang-Regular.ttf */; };
+		088E4F9501054AD092F039DC /* ZhiMangXing-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 57E2916422A145AEBCBB3B72 /* ZhiMangXing-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +51,15 @@
 		FC4BC8DA3B94F08A7FF04C17 /* CatalogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogView.swift; sourceTree = "<group>"; };
 		B357B32686684B3E8964C6CD /* ReadingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettings.swift; sourceTree = "<group>"; };
 		B207A768BD914EC3A5DA4FCE /* ReadingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettingsView.swift; sourceTree = "<group>"; };
+		5F15F6372A7548D58B93004D /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = font.otf; path = Fonts/NotoSansSC-Regular.otf; sourceTree = "<group>"; };
+		CF4714380A5D4C1391512008 /* NotoSerifSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = font.otf; path = Fonts/NotoSerifSC-Regular.otf; sourceTree = "<group>"; };
+		1DDF6F53E21842E6AB61B019 /* ZCOOLKuaiLe-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/ZCOOLKuaiLe-Regular.ttf; sourceTree = "<group>"; };
+		95E2879D81194DB4A89FDE77 /* ZCOOLQingKeHuangYou-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/ZCOOLQingKeHuangYou-Regular.ttf; sourceTree = "<group>"; };
+		2DDC2AA7B6D746CCAC669DBD /* ZCOOLXiaoWei-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/ZCOOLXiaoWei-Regular.ttf; sourceTree = "<group>"; };
+		9B328C0424AF4F4F840BEF1C /* MaShanZheng-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/MaShanZheng-Regular.ttf; sourceTree = "<group>"; };
+		B9C75BBC665D44EE848F57FF /* LiuJianMaoCao-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/LiuJianMaoCao-Regular.ttf; sourceTree = "<group>"; };
+		BD683E44BEC34F4DB482EC7B /* LongCang-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/LongCang-Regular.ttf; sourceTree = "<group>"; };
+		57E2916422A145AEBCBB3B72 /* ZhiMangXing-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Fonts/ZhiMangXing-Regular.ttf; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -72,7 +90,16 @@
 				EC9F3B28B027630852B2893A /* ReaderView.swift */,
 				B357B32686684B3E8964C6CD /* ReadingSettings.swift */,
 				B207A768BD914EC3A5DA4FCE /* ReadingSettingsView.swift */,
-			);
+			
+				5F15F6372A7548D58B93004D /* NotoSansSC-Regular.otf */,
+				CF4714380A5D4C1391512008 /* NotoSerifSC-Regular.otf */,
+				1DDF6F53E21842E6AB61B019 /* ZCOOLKuaiLe-Regular.ttf */,
+				95E2879D81194DB4A89FDE77 /* ZCOOLQingKeHuangYou-Regular.ttf */,
+				2DDC2AA7B6D746CCAC669DBD /* ZCOOLXiaoWei-Regular.ttf */,
+				9B328C0424AF4F4F840BEF1C /* MaShanZheng-Regular.ttf */,
+				B9C75BBC665D44EE848F57FF /* LiuJianMaoCao-Regular.ttf */,
+				BD683E44BEC34F4DB482EC7B /* LongCang-Regular.ttf */,
+				57E2916422A145AEBCBB3B72 /* ZhiMangXing-Regular.ttf */,);
 			path = NovelReader;
 			sourceTree = "<group>";
 		};
@@ -92,7 +119,8 @@
 			buildConfigurationList = 53C4ED739ACD0CFF8506DC42 /* Build configuration list for PBXNativeTarget "NovelReaderApp" */;
 			buildPhases = (
 				B313511C596D95D7549967CC /* Sources */,
-			);
+			
+				B153DC43508E46A4A85ECFAE /* Resources */,);
 			buildRules = (
 			);
 			dependencies = (
@@ -162,6 +190,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B153DC43508E46A4A85ECFAE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ADF86A11DCA04F29B38AF3C2 /* NotoSansSC-Regular.otf in Resources */,
+				A63616F014F6484E8A66D5B0 /* NotoSerifSC-Regular.otf in Resources */,
+				04711682575B401783FFCFFA /* ZCOOLKuaiLe-Regular.ttf in Resources */,
+				C1C91846CC9C4C6B8961547F /* ZCOOLQingKeHuangYou-Regular.ttf in Resources */,
+				42B2DD4F4CA74D7B84890D9D /* ZCOOLXiaoWei-Regular.ttf in Resources */,
+				B0397D8228D4495886EEA9D2 /* MaShanZheng-Regular.ttf in Resources */,
+				DA2F90250DB74BBEA471BF73 /* LiuJianMaoCao-Regular.ttf in Resources */,
+				6334865B62F04F448A556250 /* LongCang-Regular.ttf in Resources */,
+				088E4F9501054AD092F039DC /* ZhiMangXing-Regular.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 
 /* Begin XCBuildConfiguration section */
 		62E06D1449526B711DE2DCCB /* Release */ = {

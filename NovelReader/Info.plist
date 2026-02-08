@@ -18,5 +18,17 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Fonts/NotoSansSC-Regular.otf</string>
+		<string>Fonts/NotoSerifSC-Regular.otf</string>
+		<string>Fonts/ZCOOLKuaiLe-Regular.ttf</string>
+		<string>Fonts/ZCOOLQingKeHuangYou-Regular.ttf</string>
+		<string>Fonts/ZCOOLXiaoWei-Regular.ttf</string>
+		<string>Fonts/MaShanZheng-Regular.ttf</string>
+		<string>Fonts/LiuJianMaoCao-Regular.ttf</string>
+		<string>Fonts/LongCang-Regular.ttf</string>
+		<string>Fonts/ZhiMangXing-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

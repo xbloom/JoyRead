@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ReaderView: View {
     let book: Book
@@ -14,6 +15,12 @@ struct ReaderView: View {
     @State private var dragOffset: CGFloat = 0
     @State private var pageChangeHint: String? = nil
     @State private var catalogChapters: [ChapterListItem] = []
+    @State private var isDragging = false
+    @State private var dragDirection: DragDirection? = nil
+    
+    enum DragDirection {
+        case left, right
+    }
     
     init(book: Book, bookshelfViewModel: BookshelfViewModel) {
         self.book = book
@@ -48,29 +55,32 @@ struct ReaderView: View {
                     ZStack(alignment: .bottom) {
                         ZStack {
                             ScrollView {
-                                VStack(alignment: .leading, spacing: settingsManager.settings.paragraphSpacing) {
+                                VStack(alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading, spacing: settingsManager.settings.paragraphSpacing) {
                                     if let title = viewModel.chapterTitle {
                                         Text(title)
                                             .font(customFont(size: settingsManager.settings.fontSize + 4))
+                                            .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
                                             .bold()
                                             .foregroundColor(settingsManager.settings.theme.textColor)
+                                            .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
                                     }
                                     
                                     // 将内容按段落分割并渲染
                                     ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
                                         Text("　　\(paragraph)")
                                             .font(customFont(size: settingsManager.settings.fontSize))
+                                            .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
                                             .lineSpacing(settingsManager.settings.lineSpacing)
                                             .foregroundColor(settingsManager.settings.theme.textColor)
+                                            .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
                                     }
                                 }
                                 .padding(.horizontal, settingsManager.settings.horizontalPadding)
                                 .padding(.vertical, 20)
-                                .padding(.bottom, showToolbar ? 60 : 0)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(maxWidth: .infinity, alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading)
                             }
                             .background(settingsManager.settings.theme.backgroundColor)
-                            .offset(x: dragOffset)
+                            .ignoresSafeArea()  // 让内容占据全屏
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 withAnimation(.easeInOut(duration: 0.2)) {
@@ -80,9 +90,20 @@ struct ReaderView: View {
                             .gesture(
                                 DragGesture()
                                     .onChanged { value in
-                                        dragOffset = value.translation.width * 0.3
+                                        isDragging = true
+                                        dragOffset = value.translation.width
+                                        
+                                        // 判断拖动方向
+                                        if value.translation.width > 20 {
+                                            dragDirection = .right
+                                        } else if value.translation.width < -20 {
+                                            dragDirection = .left
+                                        }
                                     }
                                     .onEnded { value in
+                                        isDragging = false
+                                        dragDirection = nil
+                                        
                                         let threshold: CGFloat = 100
                                         if value.translation.width > threshold {
                                             // 右滑 - 上一章
@@ -105,6 +126,84 @@ struct ReaderView: View {
                                     }
                             )
                             
+                            // 左侧拖动指示器
+                            if isDragging && dragDirection == .right {
+                                let progress = min(abs(dragOffset) / 100, 1.0)
+                                let canFlip = progress > 0.99
+                                
+                                HStack {
+                                    VStack(spacing: 8) {
+                                        let arrowSize: CGFloat = 30 + (progress * 10)
+                                        
+                                        Image(systemName: "chevron.left")
+                                            .font(.system(size: arrowSize, weight: .semibold))
+                                            .foregroundColor(canFlip ? .green : .primary.opacity(0.6 + progress * 0.4))
+                                        
+                                        if let prevIndex = catalogChapters.firstIndex(where: { $0.url == viewModel.currentURL }),
+                                           prevIndex > 0 {
+                                            Text(catalogChapters[prevIndex - 1].title)
+                                                .font(.caption)
+                                                .foregroundColor(canFlip ? .green : .secondary)
+                                                .lineLimit(2)
+                                                .frame(width: 80)
+                                                .multilineTextAlignment(.center)
+                                        } else {
+                                            Text("第一章")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(canFlip ? Color.green.opacity(0.15) : Color.primary.opacity(0.05 + progress * 0.05))
+                                    )
+                                    .padding(.leading, 20)
+                                    
+                                    Spacer()
+                                }
+                                .transition(.opacity)
+                            }
+                            
+                            // 右侧拖动指示器
+                            if isDragging && dragDirection == .left {
+                                let progress = min(abs(dragOffset) / 100, 1.0)
+                                let canFlip = progress > 0.99
+                                
+                                HStack {
+                                    Spacer()
+                                    
+                                    VStack(spacing: 8) {
+                                        let arrowSize: CGFloat = 30 + (progress * 10)
+                                        
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: arrowSize, weight: .semibold))
+                                            .foregroundColor(canFlip ? .green : .primary.opacity(0.6 + progress * 0.4))
+                                        
+                                        if let nextIndex = catalogChapters.firstIndex(where: { $0.url == viewModel.currentURL }),
+                                           nextIndex < catalogChapters.count - 1 {
+                                            Text(catalogChapters[nextIndex + 1].title)
+                                                .font(.caption)
+                                                .foregroundColor(canFlip ? .green : .secondary)
+                                                .lineLimit(2)
+                                                .frame(width: 80)
+                                                .multilineTextAlignment(.center)
+                                        } else {
+                                            Text("最后一章")
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                    .padding()
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(canFlip ? Color.green.opacity(0.15) : Color.primary.opacity(0.05 + progress * 0.05))
+                                    )
+                                    .padding(.trailing, 20)
+                                }
+                                .transition(.opacity)
+                            }
+                            
                             // 翻页提示
                             if let hint = pageChangeHint {
                                 VStack {
@@ -123,47 +222,54 @@ struct ReaderView: View {
                             }
                         }
                         
-                        // 底部工具栏
+                        // 底部工具栏 - 浮动在内容之上
                         if showToolbar {
-                            HStack {
-                                Button(action: {
-                                    viewModel.loadPreviousChapter()
-                                }) {
-                                    Label("上一章", systemImage: "chevron.left")
-                                }
-                                .disabled(!viewModel.hasPreviousChapter)
-                                
+                            VStack {
                                 Spacer()
-                                
-                                // 阅读设置按钮
-                                Button(action: {
-                                    showSettings = true
-                                }) {
-                                    Label("设置", systemImage: "textformat.size")
-                                }
-                                
-                                Spacer()
-                                
-                                // 目录按钮
-                                if book.catalogURL != nil {
+                                HStack {
                                     Button(action: {
-                                        showCatalog = true
+                                        viewModel.loadPreviousChapter()
                                     }) {
-                                        Label("目录", systemImage: "list.bullet")
+                                        Label("上一章", systemImage: "chevron.left")
                                     }
+                                    .disabled(!viewModel.hasPreviousChapter)
+                                    
+                                    Spacer()
+                                    
+                                    // 阅读设置按钮
+                                    Button(action: {
+                                        showSettings = true
+                                    }) {
+                                        Label("设置", systemImage: "textformat.size")
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    // 目录按钮
+                                    if book.catalogURL != nil {
+                                        Button(action: {
+                                            showCatalog = true
+                                        }) {
+                                            Label("目录", systemImage: "list.bullet")
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Button(action: {
+                                        viewModel.loadNextChapter()
+                                    }) {
+                                        Label("下一章", systemImage: "chevron.right")
+                                    }
+                                    .disabled(!viewModel.hasNextChapter)
                                 }
-                                
-                                Spacer()
-                                
-                                Button(action: {
-                                    viewModel.loadNextChapter()
-                                }) {
-                                    Label("下一章", systemImage: "chevron.right")
-                                }
-                                .disabled(!viewModel.hasNextChapter)
+                                .padding()
+                                .background(
+                                    settingsManager.settings.theme.backgroundColor
+                                        .opacity(0.95)
+                                        .shadow(color: .black.opacity(0.1), radius: 10, y: -5)
+                                )
                             }
-                            .padding()
-                            .background(settingsManager.settings.theme.backgroundColor.opacity(0.95))
                             .transition(.move(edge: .bottom))
                         }
                     }
@@ -246,11 +352,34 @@ struct ReaderView: View {
     }
     
     private func customFont(size: CGFloat) -> Font {
-        if settingsManager.settings.fontName == "System" {
+        let fontName = settingsManager.settings.fontName
+        
+        if fontName == "System" {
             return .system(size: size)
+        } else if fontName == "PingFang SC" {
+            return .system(size: size, design: .default)
         } else {
-            return .custom(settingsManager.settings.fontName, size: size)
+            // 尝试加载自定义字体
+            if let _ = UIFont(name: fontName, size: size) {
+                return .custom(fontName, size: size)
+            } else {
+                // 如果字体加载失败，回退到系统字体
+                print("⚠️ 字体加载失败: \(fontName)")
+                return .system(size: size)
+            }
         }
+    }
+    
+    private func isSystemFont(_ fontName: String) -> Bool {
+        let systemFonts = [
+            "System",
+            "PingFang SC",
+            "Songti SC",
+            "Heiti SC",
+            "Kaiti SC",
+            "Yuanti SC"
+        ]
+        return systemFonts.contains(fontName)
     }
     
     private func saveProgress() {
