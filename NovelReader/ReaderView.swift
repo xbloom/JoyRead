@@ -10,6 +10,10 @@ struct ReaderView: View {
     @State private var showCatalog = false
     @State private var showDownload = false
     @State private var showSettings = false
+    @State private var showToolbar = false
+    @State private var dragOffset: CGFloat = 0
+    @State private var pageChangeHint: String? = nil
+    @State private var catalogChapters: [ChapterListItem] = []
     
     init(book: Book, bookshelfViewModel: BookshelfViewModel) {
         self.book = book
@@ -41,72 +45,133 @@ struct ReaderView: View {
                         }
                     }
                 } else {
-                    ScrollView {
-                        VStack(alignment: .leading, spacing: settingsManager.settings.paragraphSpacing) {
-                            if let title = viewModel.chapterTitle {
-                                Text(title)
-                                    .font(customFont(size: settingsManager.settings.fontSize + 4))
-                                    .bold()
-                                    .foregroundColor(settingsManager.settings.theme.textColor)
+                    ZStack(alignment: .bottom) {
+                        ZStack {
+                            ScrollView {
+                                VStack(alignment: .leading, spacing: settingsManager.settings.paragraphSpacing) {
+                                    if let title = viewModel.chapterTitle {
+                                        Text(title)
+                                            .font(customFont(size: settingsManager.settings.fontSize + 4))
+                                            .bold()
+                                            .foregroundColor(settingsManager.settings.theme.textColor)
+                                    }
+                                    
+                                    // 将内容按段落分割并渲染
+                                    ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
+                                        Text("　　\(paragraph)")
+                                            .font(customFont(size: settingsManager.settings.fontSize))
+                                            .lineSpacing(settingsManager.settings.lineSpacing)
+                                            .foregroundColor(settingsManager.settings.theme.textColor)
+                                    }
+                                }
+                                .padding(.horizontal, settingsManager.settings.horizontalPadding)
+                                .padding(.vertical, 20)
+                                .padding(.bottom, showToolbar ? 60 : 0)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                            .background(settingsManager.settings.theme.backgroundColor)
+                            .offset(x: dragOffset)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    showToolbar.toggle()
+                                }
+                            }
+                            .gesture(
+                                DragGesture()
+                                    .onChanged { value in
+                                        dragOffset = value.translation.width * 0.3
+                                    }
+                                    .onEnded { value in
+                                        let threshold: CGFloat = 100
+                                        if value.translation.width > threshold {
+                                            // 右滑 - 上一章
+                                            if viewModel.hasPreviousChapter {
+                                                viewModel.loadPreviousChapter()
+                                            } else {
+                                                showPageChangeHint("已是第一章")
+                                            }
+                                        } else if value.translation.width < -threshold {
+                                            // 左滑 - 下一章
+                                            if viewModel.hasNextChapter {
+                                                viewModel.loadNextChapter()
+                                            } else {
+                                                showPageChangeHint("已是最后一章")
+                                            }
+                                        }
+                                        withAnimation(.spring()) {
+                                            dragOffset = 0
+                                        }
+                                    }
+                            )
                             
-                            // 将内容按段落分割并渲染
-                            ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
-                                Text("　　\(paragraph)")
-                                    .font(customFont(size: settingsManager.settings.fontSize))
-                                    .lineSpacing(settingsManager.settings.lineSpacing)
-                                    .foregroundColor(settingsManager.settings.theme.textColor)
-                            }
-                        }
-                        .padding(.horizontal, settingsManager.settings.horizontalPadding)
-                        .padding(.vertical, 20)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .background(settingsManager.settings.theme.backgroundColor)
-                    
-                    HStack {
-                        Button(action: {
-                            viewModel.loadPreviousChapter()
-                        }) {
-                            Label("上一章", systemImage: "chevron.left")
-                        }
-                        .disabled(!viewModel.hasPreviousChapter)
-                        
-                        Spacer()
-                        
-                        // 阅读设置按钮
-                        Button(action: {
-                            showSettings = true
-                        }) {
-                            Label("设置", systemImage: "textformat.size")
-                        }
-                        
-                        Spacer()
-                        
-                        // 目录按钮
-                        if let catalogURL = book.catalogURL {
-                            Button(action: {
-                                showCatalog = true
-                            }) {
-                                Label("目录", systemImage: "list.bullet")
+                            // 翻页提示
+                            if let hint = pageChangeHint {
+                                VStack {
+                                    Spacer()
+                                    Text(hint)
+                                        .font(.title2)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.white)
+                                        .padding(.horizontal, 30)
+                                        .padding(.vertical, 15)
+                                        .background(Color.black.opacity(0.7))
+                                        .cornerRadius(25)
+                                        .transition(.scale.combined(with: .opacity))
+                                    Spacer()
+                                }
                             }
                         }
                         
-                        Spacer()
-                        
-                        Button(action: {
-                            viewModel.loadNextChapter()
-                        }) {
-                            Label("下一章", systemImage: "chevron.right")
+                        // 底部工具栏
+                        if showToolbar {
+                            HStack {
+                                Button(action: {
+                                    viewModel.loadPreviousChapter()
+                                }) {
+                                    Label("上一章", systemImage: "chevron.left")
+                                }
+                                .disabled(!viewModel.hasPreviousChapter)
+                                
+                                Spacer()
+                                
+                                // 阅读设置按钮
+                                Button(action: {
+                                    showSettings = true
+                                }) {
+                                    Label("设置", systemImage: "textformat.size")
+                                }
+                                
+                                Spacer()
+                                
+                                // 目录按钮
+                                if book.catalogURL != nil {
+                                    Button(action: {
+                                        showCatalog = true
+                                    }) {
+                                        Label("目录", systemImage: "list.bullet")
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                Button(action: {
+                                    viewModel.loadNextChapter()
+                                }) {
+                                    Label("下一章", systemImage: "chevron.right")
+                                }
+                                .disabled(!viewModel.hasNextChapter)
+                            }
+                            .padding()
+                            .background(settingsManager.settings.theme.backgroundColor.opacity(0.95))
+                            .transition(.move(edge: .bottom))
                         }
-                        .disabled(!viewModel.hasNextChapter)
                     }
-                    .padding()
-                    .background(settingsManager.settings.theme.backgroundColor.opacity(0.95))
                 }
             }
             .navigationTitle(book.title)
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarHidden(!showToolbar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("返回") {
@@ -165,9 +230,16 @@ struct ReaderView: View {
             }
             .onAppear {
                 viewModel.loadChapter()
+                loadCatalogForNavigation()
             }
             .onChange(of: viewModel.currentURL) { _ in
                 saveProgress()
+                updateNavigationFromCatalog()
+            }
+            .onChange(of: viewModel.chapterTitle) { newTitle in
+                if let title = newTitle {
+                    showPageChangeHint(title)
+                }
             }
         }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -187,5 +259,53 @@ struct ReaderView: View {
         updatedBook.currentChapterTitle = viewModel.chapterTitle
         updatedBook.lastReadDate = Date()
         bookshelfViewModel.updateBook(updatedBook)
+    }
+    
+    private func showPageChangeHint(_ text: String) {
+        withAnimation(.spring()) {
+            pageChangeHint = text
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            withAnimation(.easeOut(duration: 0.3)) {
+                pageChangeHint = nil
+            }
+        }
+    }
+    
+    private func loadCatalogForNavigation() {
+        guard let catalogURL = book.catalogURL else { return }
+        
+        Task {
+            do {
+                let parser = HTMLParser()
+                let (_, chapters) = try await parser.parseCatalog(url: catalogURL)
+                await MainActor.run {
+                    self.catalogChapters = chapters
+                    updateNavigationFromCatalog()
+                }
+            } catch {
+                print("加载目录失败: \(error)")
+            }
+        }
+    }
+    
+    private func updateNavigationFromCatalog() {
+        guard !catalogChapters.isEmpty else { return }
+        
+        // 找到当前章节在目录中的位置
+        if let currentIndex = catalogChapters.firstIndex(where: { $0.url == viewModel.currentURL }) {
+            // 设置上一章
+            if currentIndex > 0 {
+                viewModel.previousChapterURL = catalogChapters[currentIndex - 1].url
+            } else {
+                viewModel.previousChapterURL = nil
+            }
+            
+            // 设置下一章（如果 HTML 中没有解析到）
+            if viewModel.nextChapterURL == nil && currentIndex < catalogChapters.count - 1 {
+                viewModel.nextChapterURL = catalogChapters[currentIndex + 1].url
+            }
+        }
     }
 }
