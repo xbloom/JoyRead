@@ -4,7 +4,7 @@ SCHEME = NovelReaderApp
 PROJECT = NovelReaderApp.xcodeproj
 DERIVED_DATA = $(HOME)/Library/Developer/Xcode/DerivedData/NovelReaderApp-dgpxpeizblwacqfuezvplbaupayy
 
-.PHONY: install clean build test trollstore ipa
+.PHONY: install clean build test trollstore ipa page
 
 install: build
 	ideviceinstaller install $(DERIVED_DATA)/Build/Products/Release-iphoneos/NovelReaderApp.app
@@ -34,3 +34,12 @@ trollstore:
 # 仅构建 IPA 文件（不启动服务器）
 ipa:
 	@./scripts/build_ipa.sh
+
+# 部署下载页面到 Cloudflare Pages
+page:
+	@echo "🚀 部署下载页面到 Cloudflare Pages..."
+	@cd web && wrangler pages deploy . --project-name=joyread
+	@echo ""
+	@echo "✅ 部署完成！"
+	@echo "访问: https://joyread.pages.dev"
+	@echo "API: https://joyread.pages.dev/api/release"
