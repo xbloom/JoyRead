@@ -57,7 +57,7 @@ struct ContentView: View {
                     .padding()
                 }
             }
-            .navigationTitle("小说阅读器")
+            .navigationTitle("JoyRead")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {

@@ -24,7 +24,7 @@ clean:
 
 # 在macOS上运行单元测试（仅测试业务逻辑）
 test:
-	@echo "运行业务逻辑测试（macOS环境）..."
+	@echo "运行 JoyRead 业务逻辑测试（macOS环境）..."
 	@swift test
 
 # 构建 IPA 用于 TrollStore 安装（无需数据线）

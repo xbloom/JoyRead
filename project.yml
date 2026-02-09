@@ -15,7 +15,7 @@ targets:
     info:
       path: NovelReader/Info.plist
       properties:
-        CFBundleDisplayName: NovelReader
+        CFBundleDisplayName: JoyRead
         UILaunchScreen: {}
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.novelreader.NovelReaderApp

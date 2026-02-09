@@ -20,6 +20,9 @@ echo ""
 # 2. 获取本机 IP
 IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "localhost")
 
+# 2.5. 复制 App 图标到 build 目录
+cp NovelReader/Assets.xcassets/AppIcon.appiconset/icon_1024x1024.png "$EXPORT_PATH/icon_1024x1024.png"
+
 # 3. 生成安装页面
 cat > "$EXPORT_PATH/index.html" << EOF
 <!DOCTYPE html>
@@ -27,7 +30,7 @@ cat > "$EXPORT_PATH/index.html" << EOF
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovelReader 安装</title>
+    <title>JoyRead 安装</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -102,10 +105,6 @@ cat > "$EXPORT_PATH/index.html" << EOF
             color: #666;
             line-height: 1.6;
         }
-        .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
         .info {
             margin-top: 20px;
             padding: 15px;
@@ -118,9 +117,9 @@ cat > "$EXPORT_PATH/index.html" << EOF
 </head>
 <body>
     <div class="container">
-        <div class="icon">📚</div>
-        <h1>NovelReader</h1>
-        <p class="subtitle">iOS 小说阅读器</p>
+        <img src="icon_1024x1024.png" alt="JoyRead" style="width: 120px; height: 120px; border-radius: 24px; margin-bottom: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+        <h1>JoyRead</h1>
+        <p class="subtitle">悦读 - 随时随地，快乐阅读</p>
         
         <a href="apple-magnifier://install?url=http://${IP}:${PORT}/${IPA_NAME}" class="btn btn-primary">
             🚀 一键安装到 TrollStore
