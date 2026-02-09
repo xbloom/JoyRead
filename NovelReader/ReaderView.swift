@@ -2,8 +2,8 @@ import SwiftUI
 import UIKit
 
 struct ReaderView: View {
-    let book: Book
-    let bookshelfViewModel: BookshelfViewModel
+    let book: Novel
+    let bookshelfViewModel: NovelshelfViewModel
     
     @StateObject private var viewModel: NovelReaderViewModel
     @StateObject private var settingsManager = ReadingSettingsManager()
@@ -14,7 +14,7 @@ struct ReaderView: View {
     @State private var showToolbar = false
     @State private var dragOffset: CGFloat = 0
     @State private var pageChangeHint: String? = nil
-    @State private var catalogChapters: [ChapterListItem] = []
+    @State private var catalogChapters: [Chapter] = []
     @State private var isDragging = false
     @State private var dragDirection: DragDirection? = nil
     
@@ -22,16 +22,16 @@ struct ReaderView: View {
         case left, right
     }
     
-    init(book: Book, bookshelfViewModel: BookshelfViewModel) {
+    init(book: Novel, bookshelfViewModel: NovelshelfViewModel) {
         self.book = book
         self.bookshelfViewModel = bookshelfViewModel
         
         // 使用书籍信息初始化阅读器
         let vm = NovelReaderViewModel()
-        vm.currentURL = book.currentChapterURL
-        vm.titleSelector = book.titleSelector
-        vm.contentSelector = book.contentSelector
-        vm.nextChapterSelector = book.nextChapterSelector
+        vm.currentURL = book.currentChapterURL ?? book.chapters.first?.url ?? ""
+        vm.titleSelector = book.parserConfig.titleSelector
+        vm.contentSelector = book.parserConfig.contentSelector
+        vm.nextChapterSelector = book.parserConfig.nextChapterSelector
         _viewModel = StateObject(wrappedValue: vm)
     }
     
@@ -318,26 +318,25 @@ struct ReaderView: View {
                 ReadingSettingsView(settingsManager: settingsManager)
             }
             .sheet(isPresented: $showCatalog) {
-                if let catalogURL = book.catalogURL {
-                    CatalogView(
-                        catalogURL: catalogURL,
-                        currentChapterURL: viewModel.currentURL,
-                        onSelectChapter: { chapter in
-                            viewModel.currentURL = chapter.url
-                            viewModel.loadChapter()
-                        }
-                    )
-                }
+                let catalogURL = book.catalogURL
+                CatalogView(
+                    catalogURL: catalogURL,
+                    currentChapterURL: viewModel.currentURL,
+                    onSelectChapter: { chapter in
+                        viewModel.currentURL = chapter.url
+                        viewModel.loadChapter()
+                    },
+                    cachedChapters: book.chapters
+                )
             }
             .sheet(isPresented: $showDownload) {
-                if let catalogURL = book.catalogURL {
-                    DownloadView(
-                        catalogURL: catalogURL,
-                        titleSelector: book.titleSelector,
-                        contentSelector: book.contentSelector,
-                        nextChapterSelector: book.nextChapterSelector
-                    )
-                }
+                let catalogURL = book.catalogURL
+                DownloadView(
+                    catalogURL: catalogURL,
+                    titleSelector: book.parserConfig.titleSelector,
+                    contentSelector: book.parserConfig.contentSelector,
+                    nextChapterSelector: book.parserConfig.nextChapterSelector
+                )
             }
             .onAppear {
                 configureNavigationBarAppearance()
@@ -416,11 +415,11 @@ struct ReaderView: View {
     }
     
     private func saveProgress() {
-        var updatedBook = book
-        updatedBook.currentChapterURL = viewModel.currentURL
-        updatedBook.currentChapterTitle = viewModel.chapterTitle
-        updatedBook.lastReadDate = Date()
-        bookshelfViewModel.updateBook(updatedBook)
+        var updatedNovel = book
+        updatedNovel.currentChapterURL = viewModel.currentURL
+        updatedNovel.currentChapterTitle = viewModel.chapterTitle
+        updatedNovel.lastReadDate = Date()
+        bookshelfViewModel.updateNovel(updatedNovel)
     }
     
     private func showPageChangeHint(_ text: String) {
@@ -436,12 +435,12 @@ struct ReaderView: View {
     }
     
     private func loadCatalogForNavigation() {
-        guard let catalogURL = book.catalogURL else { return }
+        let catalogURL = book.catalogURL
         
         Task {
             do {
                 let parser = HTMLParser()
-                let (_, chapters) = try await parser.parseCatalog(url: catalogURL)
+                let (_, chapters) = try await parser.parseBook(fromURL: catalogURL)
                 await MainActor.run {
                     self.catalogChapters = chapters
                     updateNavigationFromCatalog()

@@ -1,8 +1,8 @@
 import SwiftUI
 
 class CatalogViewModel: ObservableObject {
-    @Published var bookInfo: BookInfo?
-    @Published var chapters: [ChapterListItem] = []
+    @Published var bookInfo: Novel?
+    @Published var chapters: [Chapter] = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
@@ -13,7 +13,7 @@ class CatalogViewModel: ObservableObject {
         Task {
             do {
                 let parser = HTMLParser()
-                let (info, chapterList) = try await parser.parseCatalog(url: url)
+                let (info, chapterList) = try await parser.parseBook(fromURL: url)
                 
                 await MainActor.run {
                     self.bookInfo = info

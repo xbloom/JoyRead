@@ -1,9 +1,13 @@
 import SwiftUI
 
-struct BookshelfView: View {
-    @StateObject private var viewModel = BookshelfViewModel()
-    @State private var showAddBook = false
-    @State private var selectedBook: Book?
+struct NovelshelfView: View {
+    @StateObject private var viewModel = NovelshelfViewModel()
+    @State private var showAddNovel = false
+    @State private var selectedNovel: Novel?
+    
+    let columns = [
+        GridItem(.adaptive(minimum: 150, maximum: 200), spacing: 20)
+    ]
     
     var body: some View {
         NavigationView {
@@ -21,15 +25,25 @@ struct BookshelfView: View {
                             .foregroundColor(.secondary)
                     }
                 } else {
-                    List {
-                        ForEach(viewModel.books) { book in
-                            BookRowView(book: book)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    selectedBook = book
-                                }
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 20) {
+                            ForEach(viewModel.books) { book in
+                                NovelCardView(book: book)
+                                    .onTapGesture {
+                                        selectedNovel = book
+                                    }
+                                    .contextMenu {
+                                        Button(role: .destructive) {
+                                            if let index = viewModel.books.firstIndex(where: { $0.id == book.id }) {
+                                                viewModel.deleteNovels(at: IndexSet(integer: index))
+                                            }
+                                        } label: {
+                                            Label("删除", systemImage: "trash")
+                                        }
+                                    }
+                            }
                         }
-                        .onDelete(perform: viewModel.deleteBooks)
+                        .padding()
                     }
                 }
             }
@@ -37,16 +51,16 @@ struct BookshelfView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
-                        showAddBook = true
+                        showAddNovel = true
                     }) {
                         Image(systemName: "plus")
                     }
                 }
             }
-            .sheet(isPresented: $showAddBook) {
-                AddBookView(viewModel: viewModel)
+            .sheet(isPresented: $showAddNovel) {
+                AddNovelView(viewModel: viewModel)
             }
-            .fullScreenCover(item: $selectedBook) { book in
+            .fullScreenCover(item: $selectedNovel) { book in
                 ReaderView(book: book, bookshelfViewModel: viewModel)
             }
         }
@@ -54,43 +68,112 @@ struct BookshelfView: View {
     }
 }
 
-struct BookRowView: View {
-    let book: Book
+struct NovelCardView: View {
+    let book: Novel
+    @State private var coverImage: UIImage?
+    @State private var isLoadingCover = false
     
     var body: some View {
-        HStack(spacing: 15) {
-            // 封面占位符
+        VStack(alignment: .leading, spacing: 8) {
+            // 封面
             ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.blue.opacity(0.2))
-                    .frame(width: 60, height: 80)
-                Image(systemName: "book.fill")
-                    .font(.title)
-                    .foregroundColor(.blue)
-            }
-            
-            VStack(alignment: .leading, spacing: 5) {
-                Text(book.title)
-                    .font(.headline)
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue.opacity(0.3), Color.purple.opacity(0.3)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .aspectRatio(0.7, contentMode: .fit)
                 
-                if let chapterTitle = book.currentChapterTitle {
-                    Text(chapterTitle)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                if let coverImage = coverImage {
+                    Image(uiImage: coverImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .aspectRatio(0.7, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                } else if isLoadingCover {
+                    ProgressView()
+                        .tint(.white)
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "book.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(.white.opacity(0.8))
+                        Text(book.title)
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.9))
+                            .multilineTextAlignment(.center)
+                            .lineLimit(3)
+                            .padding(.horizontal, 8)
+                    }
                 }
-                
-                Text(formatDate(book.lastReadDate))
+            }
+            .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+            
+            // 书名
+            Text(book.title)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            // 作者
+            if let author = book.author {
+                Text(author)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
             
-            Spacer()
+            // 阅读进度
+            if let chapterTitle = book.currentChapterTitle {
+                Text(chapterTitle)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
             
-            Image(systemName: "chevron.right")
+            // 最后阅读时间
+            Text(formatDate(book.lastReadDate))
+                .font(.caption2)
                 .foregroundColor(.secondary)
         }
-        .padding(.vertical, 5)
+        .onAppear {
+            loadCoverImage()
+        }
+    }
+    
+    private func loadCoverImage() {
+        guard let coverURLString = book.coverURL,
+              let url = URL(string: coverURLString),
+              coverImage == nil else {
+            return
+        }
+        
+        isLoadingCover = true
+        
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                if let image = UIImage(data: data) {
+                    await MainActor.run {
+                        self.coverImage = image
+                        self.isLoadingCover = false
+                    }
+                } else {
+                    await MainActor.run {
+                        self.isLoadingCover = false
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    self.isLoadingCover = false
+                }
+            }
+        }
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -100,8 +183,8 @@ struct BookRowView: View {
     }
 }
 
-struct AddBookView: View {
-    @ObservedObject var viewModel: BookshelfViewModel
+struct AddNovelView: View {
+    @ObservedObject var viewModel: NovelshelfViewModel
     @Environment(\.dismiss) var dismiss
     
     @State private var chapterURL: String = ""
@@ -150,7 +233,7 @@ struct AddBookView: View {
                 
                 Section {
                     Button("添加到书架") {
-                        addBook()
+                        addNovel()
                     }
                     .disabled(chapterURL.isEmpty || isLoading)
                 }
@@ -164,7 +247,7 @@ struct AddBookView: View {
         }
     }
     
-    private func addBook() {
+    private func addNovel() {
         isLoading = true
         errorMessage = nil
         
@@ -172,33 +255,33 @@ struct AddBookView: View {
             do {
                 let parser = HTMLParser()
                 
-                // 从章节URL提取bookId并构建目录URL
-                guard let bookId = extractBookId(from: chapterURL) else {
-                    await MainActor.run {
-                        errorMessage = "无法从URL中提取书籍ID"
-                        isLoading = false
-                    }
-                    return
-                }
-                
-                let catalogURL = "https://www.cuoceng.com/book/chapter/\(bookId).html"
-                
-                // 获取书籍信息和目录
-                let (bookInfo, chapters) = try await parser.parseCatalog(url: catalogURL)
+                // 自动识别页面类型并获取完整信息
+                let (bookInfo, chapters) = try await parser.parseBook(fromURL: chapterURL)
                 
                 await MainActor.run {
-                    let book = Book(
+                    // 判断用户输入的URL是否是有效的章节URL
+                    let isChapterURL = chapterURL.range(of: "/book/[a-f0-9-]+/[a-f0-9-]+\\.html", options: .regularExpression) != nil
+                    
+                    // 如果不是章节URL，使用第一章作为初始章节
+                    let initialChapterURL = isChapterURL ? chapterURL : (chapters.first?.url ?? chapterURL)
+                    
+                    let novel = Novel(
+                        id: bookInfo.id,
                         title: bookInfo.title,
                         author: bookInfo.author,
                         coverURL: bookInfo.coverURL,
-                        currentChapterURL: chapterURL,
-                        titleSelector: titleSelector,
-                        contentSelector: contentSelector,
-                        nextChapterSelector: nextChapterSelector,
-                        catalogURL: catalogURL
+                        introduction: bookInfo.introduction,
+                        catalogURL: bookInfo.catalogURL,
+                        chapters: bookInfo.chapters,
+                        currentChapterURL: initialChapterURL,
+                        parserConfig: ParserConfig(
+                            titleSelector: titleSelector,
+                            contentSelector: contentSelector,
+                            nextChapterSelector: nextChapterSelector
+                        )
                     )
                     
-                    viewModel.addBook(book)
+                    viewModel.addNovel(novel)
                     isLoading = false
                     dismiss()
                 }
@@ -209,16 +292,5 @@ struct AddBookView: View {
                 }
             }
         }
-    }
-    
-    private func extractBookId(from urlString: String) -> String? {
-        // 从 https://www.cuoceng.com/book/{bookId}/{chapterId}.html 提取 bookId
-        let pattern = "/book/([a-f0-9-]+)/[a-f0-9-]+\\.html"
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
-              let match = regex.firstMatch(in: urlString, range: NSRange(urlString.startIndex..., in: urlString)),
-              let range = Range(match.range(at: 1), in: urlString) else {
-            return nil
-        }
-        return String(urlString[range])
     }
 }

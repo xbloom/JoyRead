@@ -11,7 +11,7 @@ class DownloadManager: ObservableObject {
     
     /// 下载指定范围的章节
     func downloadChapters(
-        chapters: [ChapterListItem],
+        chapters: [Chapter],
         titleSelector: String,
         contentSelector: String,
         nextChapterSelector: String,

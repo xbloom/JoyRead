@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "NovelReader",
-    platforms: [.iOS(.v15), .macOS(.v12)],  // macOS仅用于在Mac上运行测试
+    platforms: [.iOS(.v15), .macOS(.v12)],
     products: [
         .library(name: "NovelReader", targets: ["NovelReader"]),
     ],
@@ -13,12 +13,21 @@ let package = Package(
             dependencies: [],
             path: "NovelReader",
             sources: [
+                // 数据模型
+                "Models.swift",
+                // 数据层
+                "NovelRepository.swift",
+                "DataSource.swift",
+                // 解析层
                 "HTMLParser.swift",
-                "NovelReaderViewModel.swift",
-                "Book.swift",
-                "BookshelfViewModel.swift",
+                "SiteParser.swift",
+                "CuocengParser.swift",
+                // 工具类
                 "ChapterCacheManager.swift",
-                "ReadingSettings.swift"
+                "ReadingSettings.swift",
+                // ViewModel（待重构）
+                "NovelReaderViewModel.swift",
+                "BookshelfViewModel.swift"
             ]
         ),
         .testTarget(

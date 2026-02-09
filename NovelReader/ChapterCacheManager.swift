@@ -25,7 +25,7 @@ class ChapterCacheManager {
     // MARK: - 缓存操作
     
     /// 保存章节到缓存
-    func cacheChapter(_ chapter: NovelChapter, url: String) {
+    func cacheChapter(_ chapter: ChapterContent, url: String) {
         let cached = CachedChapter(
             url: url,
             title: chapter.title,
@@ -45,7 +45,7 @@ class ChapterCacheManager {
     }
     
     /// 从缓存读取章节
-    func getCachedChapter(url: String) -> NovelChapter? {
+    func getCachedChapter(url: String) -> ChapterContent? {
         let fileURL = cacheFileURL(for: url)
         
         guard fileManager.fileExists(atPath: fileURL.path) else {
@@ -56,7 +56,7 @@ class ChapterCacheManager {
             let data = try Data(contentsOf: fileURL)
             let cached = try JSONDecoder().decode(CachedChapter.self, from: data)
             
-            return NovelChapter(
+            return ChapterContent(
                 title: cached.title,
                 content: cached.content,
                 nextChapterURL: cached.nextChapterURL

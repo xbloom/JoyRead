@@ -6,19 +6,19 @@ func testParseCatalog() async throws {
     let parser = HTMLParser()
     let catalogURL = "https://www.cuoceng.com/book/chapter/95e1a104-af57-421b-aa25-e77bdab6e51c.html"
     
-    let (bookInfo, chapters) = try await parser.parseCatalog(url: catalogURL)
+    let (novel, chapters) = try await parser.parseBook(fromURL: catalogURL)
     
     // 验证书籍信息
-    #expect(bookInfo.bookId == "95e1a104-af57-421b-aa25-e77bdab6e51c", "bookId应该正确")
-    #expect(!bookInfo.title.isEmpty, "书名不应为空")
-    #expect(bookInfo.author != nil, "应该有作者信息")
-    #expect(bookInfo.catalogURL == catalogURL, "目录URL应该正确")
+    #expect(novel.id == "95e1a104-af57-421b-aa25-e77bdab6e51c", "bookId应该正确")
+    #expect(!novel.title.isEmpty, "书名不应为空")
+    #expect(novel.author != nil, "应该有作者信息")
+    #expect(novel.catalogURL == catalogURL, "目录URL应该正确")
     
     print("📚 书籍信息:")
-    print("  书名: \(bookInfo.title)")
-    print("  作者: \(bookInfo.author ?? "未知")")
-    print("  bookId: \(bookInfo.bookId)")
-    if let coverURL = bookInfo.coverURL {
+    print("  书名: \(novel.title)")
+    print("  作者: \(novel.author ?? "未知")")
+    print("  bookId: \(novel.id)")
+    if let coverURL = novel.coverURL {
         print("  封面: \(coverURL)")
     }
     
@@ -45,11 +45,10 @@ func testParseCatalogInvalidURL() async {
     let invalidURL = "not-a-valid-url"
     
     do {
-        _ = try await parser.parseCatalog(url: invalidURL)
+        _ = try await parser.parseBook(fromURL: invalidURL)
         #expect(Bool(false), "应该抛出错误")
     } catch {
-        // URL错误可能返回不同的错误信息
-        #expect(error.localizedDescription.contains("无效") || error.localizedDescription.contains("URL"), "错误信息应包含'无效'或'URL'")
+        #expect(error.localizedDescription.contains("无效") || error.localizedDescription.contains("URL") || error.localizedDescription.contains("不支持"), "错误信息应包含相关提示")
     }
 }
 
@@ -58,7 +57,7 @@ func testParseCatalogChapterFormat() async throws {
     let parser = HTMLParser()
     let catalogURL = "https://www.cuoceng.com/book/chapter/95e1a104-af57-421b-aa25-e77bdab6e51c.html"
     
-    let (_, chapters) = try await parser.parseCatalog(url: catalogURL)
+    let (_, chapters) = try await parser.parseBook(fromURL: catalogURL)
     
     // 验证章节格式
     for chapter in chapters.prefix(10) {
@@ -82,11 +81,11 @@ func testParseCatalogExtractBookId() async throws {
     let parser = HTMLParser()
     let catalogURL = "https://www.cuoceng.com/book/chapter/95e1a104-af57-421b-aa25-e77bdab6e51c.html"
     
-    let (bookInfo, chapters) = try await parser.parseCatalog(url: catalogURL)
+    let (novel, chapters) = try await parser.parseBook(fromURL: catalogURL)
     
     // 验证bookId
     let bookId = "95e1a104-af57-421b-aa25-e77bdab6e51c"
-    #expect(bookInfo.bookId == bookId, "bookId应该正确")
+    #expect(novel.id == bookId, "bookId应该正确")
     
     // 验证所有章节URL都包含正确的bookId
     for chapter in chapters.prefix(10) {

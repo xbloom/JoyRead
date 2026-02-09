@@ -3,7 +3,8 @@ import SwiftUI
 struct CatalogView: View {
     let catalogURL: String
     let currentChapterURL: String?
-    let onSelectChapter: (ChapterListItem) -> Void
+    let onSelectChapter: (Chapter) -> Void
+    let cachedChapters: [Chapter]?  // 缓存的章节列表
     
     @StateObject private var viewModel = CatalogViewModel()
     @Environment(\.dismiss) var dismiss
@@ -104,7 +105,10 @@ struct CatalogView: View {
                 }
             }
             .onAppear {
-                if viewModel.chapters.isEmpty {
+                // 如果有缓存的章节列表，直接使用
+                if let cached = cachedChapters, !cached.isEmpty {
+                    viewModel.chapters = cached
+                } else if viewModel.chapters.isEmpty {
                     viewModel.loadCatalog(url: catalogURL)
                 }
             }
@@ -122,7 +126,7 @@ struct CatalogView: View {
 }
 
 struct ChapterRowView: View {
-    let chapter: ChapterListItem
+    let chapter: Chapter
     let isCurrent: Bool
     @State private var isCached: Bool = false
     
