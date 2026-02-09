@@ -151,22 +151,14 @@ EOF
 # 4. 生成安装链接
 WEB_URL="http://${IP}:${PORT}/"
 
-# # 5. 自动复制链接到剪贴板
-# echo "$WEB_URL" | pbcopy
-# echo "✅ 安装链接已复制到剪贴板"
-# echo ""
-
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📱 iPad 安装步骤："
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "方式1（最快）：通用剪贴板"
-echo "  iPad Safari 地址栏长按 → 粘贴并访问"
-echo ""
-echo "方式2：手动输入"
+echo "在 iPad Safari 中访问："
 echo "  ${WEB_URL}"
 echo ""
-echo "方式3：扫描下方二维码"
+echo "或扫描下方二维码"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""

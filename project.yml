@@ -10,12 +10,18 @@ targets:
     deploymentTarget: "15.0"
     sources:
       - NovelReader
+    resources:
+      - NovelReader/Assets.xcassets
     info:
       path: NovelReader/Info.plist
+      properties:
+        CFBundleDisplayName: NovelReader
+        UILaunchScreen: {}
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: com.novelreader.NovelReaderApp
       TARGETED_DEVICE_FAMILY: "2"
       CODE_SIGN_STYLE: Automatic
       DEVELOPMENT_TEAM: "49NSXZJZ54"
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     attributes:
       ProvisioningStyle: Automatic

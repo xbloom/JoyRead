@@ -86,7 +86,7 @@ struct NovelCardView: View {
     @State private var isLoadingCover = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 6) {
             // 封面
             ZStack {
                 RoundedRectangle(cornerRadius: 12)
@@ -114,44 +114,27 @@ struct NovelCardView: View {
                         Image(systemName: "book.fill")
                             .font(.system(size: 40))
                             .foregroundColor(.white.opacity(0.8))
-                        Text(book.title)
-                            .font(.caption)
-                            .foregroundColor(.white.opacity(0.9))
-                            .multilineTextAlignment(.center)
-                            .lineLimit(3)
-                            .padding(.horizontal, 8)
                     }
                 }
             }
             .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
             
-            // 书名
-            Text(book.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            
-            // 作者
-            if let author = book.author {
-                Text(author)
-                    .font(.caption)
+            // 文字信息 - 紧凑布局
+            VStack(alignment: .leading, spacing: 3) {
+                // 书名
+                Text(book.title)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 34, alignment: .top)
+                
+                // 作者
+                Text(book.author ?? "未知作者")
+                    .font(.system(size: 12))
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            
-            // 阅读进度
-            if let chapterTitle = book.currentChapterTitle {
-                Text(chapterTitle)
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            
-            // 最后阅读时间
-            Text(formatDate(book.lastReadDate))
-                .font(.caption2)
-                .foregroundColor(.secondary)
+            .frame(height: 42)
         }
         .onAppear {
             loadCoverImage()

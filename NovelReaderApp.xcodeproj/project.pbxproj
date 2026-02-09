@@ -17,6 +17,7 @@
 		433B03CE16F19445483DD9B6 /* LiuJianMaoCao-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 46DEB2A0D9513AB60ADE5654 /* LiuJianMaoCao-Regular.ttf */; };
 		507052ECA7C246F3688DF608 /* BookshelfViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF080805CB5ABF001645B075 /* BookshelfViewModel.swift */; };
 		518F71DAD14B45E724A8807F /* HTMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3568F8D7F3030892A829D26B /* HTMLParser.swift */; };
+		51CA702A370CEB0AD638B095 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 35EB62932220F59861860947 /* Assets.xcassets */; };
 		599956C9A0FD37F4FA85EA77 /* NovelReaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 165569647A9060FD0EC89000 /* NovelReaderViewModel.swift */; };
 		5A750C29245FC29C995E817C /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8FDA91A3D733386C8C83A6C1 /* NotoSansSC-Regular.otf */; };
 		797FD46A2F2315F6BBD8B656 /* DataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B3F69CFAA9545E73EA623A4 /* DataSource.swift */; };
@@ -48,6 +49,7 @@
 		256BA70AEEE552CCCD59A4F7 /* DownloadManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadManager.swift; sourceTree = "<group>"; };
 		26B65895CF2BEB666205C847 /* CatalogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogViewModel.swift; sourceTree = "<group>"; };
 		3568F8D7F3030892A829D26B /* HTMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLParser.swift; sourceTree = "<group>"; };
+		35EB62932220F59861860947 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3A47CD7E5C2970BE39427713 /* NotoSerifSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSerifSC-Regular.otf"; sourceTree = "<group>"; };
 		3B1042AB393DC766AEDB91D1 /* ZCOOLXiaoWei-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ZCOOLXiaoWei-Regular.ttf"; sourceTree = "<group>"; };
 		3B5835FA84216CF8E7B56826 /* ZhiMangXing-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ZhiMangXing-Regular.ttf"; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 		8053AE05BA363C97DA3F66A2 /* NovelReader */ = {
 			isa = PBXGroup;
 			children = (
+				35EB62932220F59861860947 /* Assets.xcassets */,
 				CE28D538A10E08389F758FF0 /* BookshelfView.swift */,
 				AF080805CB5ABF001645B075 /* BookshelfViewModel.swift */,
 				FC4BC8DA3B94F08A7FF04C17 /* CatalogView.swift */,
@@ -197,6 +200,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				51CA702A370CEB0AD638B095 /* Assets.xcassets in Resources */,
 				433B03CE16F19445483DD9B6 /* LiuJianMaoCao-Regular.ttf in Resources */,
 				C4F3DA4EA307C1D0CAF295B9 /* LongCang-Regular.ttf in Resources */,
 				B0DDC7D9A5FD20046F8B70B4 /* MaShanZheng-Regular.ttf in Resources */,
