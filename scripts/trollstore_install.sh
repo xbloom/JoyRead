@@ -151,33 +151,46 @@ EOF
 # 4. 生成安装链接
 WEB_URL="http://${IP}:${PORT}/"
 
+# 5. 自动复制链接到剪贴板
+echo "$WEB_URL" | pbcopy
+echo "✅ 安装链接已复制到剪贴板"
+echo ""
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📱 iPad 安装步骤："
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "在 iPad Safari 中打开："
+echo "方式1（最快）：通用剪贴板"
+echo "  iPad Safari 地址栏长按 → 粘贴并访问"
 echo ""
+echo "方式2：手动输入"
 echo "  ${WEB_URL}"
+echo ""
+echo "方式3：扫描下方二维码"
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# 5. 生成二维码（如果安装了 qrencode）
+# 6. 生成二维码（如果安装了 qrencode）
 if command -v qrencode &> /dev/null; then
     echo "📷 扫描二维码快速访问："
     echo ""
     qrencode -t ANSIUTF8 "$WEB_URL"
     echo ""
+else
+    echo "💡 提示：安装 qrencode 可显示二维码"
+    echo "   brew install qrencode"
+    echo ""
 fi
 
-# 6. 自动打开浏览器（可选）
+# 7. 自动打开浏览器（可选）
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "🌐 正在打开浏览器..."
     sleep 1
     open "$WEB_URL" 2>/dev/null || true
 fi
 
-# 7. 启动 HTTP 服务器
+# 8. 启动 HTTP 服务器
 echo "🌐 服务器已启动"
 echo "   按 Ctrl+C 停止服务器"
 echo ""
