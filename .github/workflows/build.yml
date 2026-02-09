@@ -3,6 +3,8 @@ name: Build IPA
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - 'v*'  # 监听 v 开头的 tag，如 v1.0.0
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:  # 允许手动触发
@@ -10,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    permissions:
+      contents: write  # 允许创建 release
     
     steps:
     - name: Checkout
