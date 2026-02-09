@@ -54,40 +54,48 @@ struct ReaderView: View {
                 } else {
                     ZStack(alignment: .bottom) {
                         ZStack {
-                            ScrollView {
-                                VStack(alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading, spacing: settingsManager.settings.paragraphSpacing) {
-                                    if let title = viewModel.chapterTitle {
-                                        Text(title)
-                                            .font(customFont(size: settingsManager.settings.fontSize + 4))
-                                            .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
-                                            .bold()
-                                            .foregroundColor(settingsManager.settings.theme.textColor)
-                                            .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
+                            ScrollViewReader { proxy in
+                                ScrollView {
+                                    VStack(alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading, spacing: settingsManager.settings.paragraphSpacing) {
+                                        if let title = viewModel.chapterTitle {
+                                            Text(title)
+                                                .font(customFont(size: settingsManager.settings.fontSize + 4))
+                                                .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
+                                                .bold()
+                                                .foregroundColor(settingsManager.settings.theme.textColor)
+                                                .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
+                                                .id("chapterTop")  // 添加ID用于滚动定位
+                                        }
+                                        
+                                        // 将内容按段落分割并渲染
+                                        ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
+                                            Text("　　\(paragraph)")
+                                                .font(customFont(size: settingsManager.settings.fontSize))
+                                                .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
+                                                .lineSpacing(settingsManager.settings.lineSpacing)
+                                                .foregroundColor(settingsManager.settings.theme.textColor)
+                                                .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
+                                        }
                                     }
-                                    
-                                    // 将内容按段落分割并渲染
-                                    ForEach(viewModel.chapterContent.components(separatedBy: "\n").filter { !$0.isEmpty }, id: \.self) { paragraph in
-                                        Text("　　\(paragraph)")
-                                            .font(customFont(size: settingsManager.settings.fontSize))
-                                            .fontWeight(isSystemFont(settingsManager.settings.fontName) ? settingsManager.settings.fontWeight.weight : .regular)
-                                            .lineSpacing(settingsManager.settings.lineSpacing)
-                                            .foregroundColor(settingsManager.settings.theme.textColor)
-                                            .multilineTextAlignment(settingsManager.settings.textAlignment.alignment)
+                                    .padding(.horizontal, settingsManager.settings.horizontalPadding)
+                                    .padding(.vertical, 20)
+                                    .frame(maxWidth: .infinity, alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading)
+                                }
+                                .background(settingsManager.settings.theme.backgroundColor)
+                                .ignoresSafeArea()  // 让内容占据全屏
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showToolbar.toggle()
                                     }
                                 }
-                                .padding(.horizontal, settingsManager.settings.horizontalPadding)
-                                .padding(.vertical, 20)
-                                .frame(maxWidth: .infinity, alignment: settingsManager.settings.textAlignment.alignment == .center ? .center : .leading)
-                            }
-                            .background(settingsManager.settings.theme.backgroundColor)
-                            .ignoresSafeArea()  // 让内容占据全屏
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    showToolbar.toggle()
+                                .onChange(of: viewModel.currentURL) { _ in
+                                    // 章节切换时滚动到顶部
+                                    withAnimation {
+                                        proxy.scrollTo("chapterTop", anchor: .top)
+                                    }
                                 }
-                            }
-                            .gesture(
+                                .gesture(
                                 DragGesture()
                                     .onChanged { value in
                                         isDragging = true
@@ -125,6 +133,7 @@ struct ReaderView: View {
                                         }
                                     }
                             )
+                            }  // ScrollViewReader 结束
                             
                             // 左侧拖动指示器
                             if isDragging && dragDirection == .right {
@@ -333,9 +342,7 @@ struct ReaderView: View {
                 let catalogURL = book.catalogURL
                 DownloadView(
                     catalogURL: catalogURL,
-                    titleSelector: book.parserConfig.titleSelector,
-                    contentSelector: book.parserConfig.contentSelector,
-                    nextChapterSelector: book.parserConfig.nextChapterSelector
+                    parserConfig: book.parserConfig
                 )
             }
             .onAppear {
@@ -435,20 +442,9 @@ struct ReaderView: View {
     }
     
     private func loadCatalogForNavigation() {
-        let catalogURL = book.catalogURL
-        
-        Task {
-            do {
-                let parser = HTMLParser()
-                let (_, chapters) = try await parser.parseBook(fromURL: catalogURL)
-                await MainActor.run {
-                    self.catalogChapters = chapters
-                    updateNavigationFromCatalog()
-                }
-            } catch {
-                print("加载目录失败: \(error)")
-            }
-        }
+        // 直接使用书籍的章节列表
+        self.catalogChapters = book.chapters
+        updateNavigationFromCatalog()
     }
     
     private func updateNavigationFromCatalog() {

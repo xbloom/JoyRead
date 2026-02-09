@@ -8,7 +8,7 @@ class NovelReaderViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var showURLInput: Bool = false
     
-    @Published var currentURL: String = "https://www.cuoceng.com/book/95e1a104-af57-421b-aa25-e77bdab6e51c/7a84f4f5-85c3-453e-b18d-f8c7f77be9f0.html"
+    @Published var currentURL: String = ""
     @Published var nextChapterURL: String?
     @Published var previousChapterURL: String?
     
@@ -22,6 +22,8 @@ class NovelReaderViewModel: ObservableObject {
     
     // 预下载配置
     private let preloadCount = 3  // 预下载后续3章
+    
+    private let repository = NovelRepository()
     
     var hasNextChapter: Bool {
         nextChapterURL != nil
@@ -42,30 +44,16 @@ class NovelReaderViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        // 先尝试从缓存读取
-        if let cached = ChapterCacheManager.shared.getCachedChapter(url: currentURL) {
-            self.chapterTitle = cached.title
-            self.chapterContent = cached.content
-            self.nextChapterURL = cached.nextChapterURL
-            self.isLoading = false
-            
-            // 从缓存读取时也要触发预下载
-            if let nextURL = cached.nextChapterURL {
-                preloadNextChapters(startingFrom: nextURL)
-            }
-            return
-        }
-        
         Task {
             do {
-                let parser = HTMLParser()
-                let result = try await parser.parseNovelPage(
-                    url: currentURL,
+                // 使用 Repository 获取章节内容（自动处理缓存）
+                let config = ParserConfig(
                     titleSelector: titleSelector,
                     contentSelector: contentSelector,
-                    nextChapterSelector: nextChapterSelector,
-                    mode: parseMode
+                    nextChapterSelector: nextChapterSelector
                 )
+                
+                let result = try await repository.getChapterContent(url: currentURL, config: config)
                 
                 await MainActor.run {
                     self.chapterTitle = result.title
@@ -73,12 +61,9 @@ class NovelReaderViewModel: ObservableObject {
                     self.nextChapterURL = result.nextChapterURL
                     self.isLoading = false
                     
-                    // 缓存章节
-                    ChapterCacheManager.shared.cacheChapter(result, url: currentURL)
-                    
                     // 预下载后续章节
                     if let nextURL = result.nextChapterURL {
-                        self.preloadNextChapters(startingFrom: nextURL)
+                        preloadNextChapters(startingFrom: nextURL)
                     }
                 }
             } catch {
@@ -96,11 +81,17 @@ class NovelReaderViewModel: ObservableObject {
             var currentURL = url
             var downloadedCount = 0
             
+            let config = ParserConfig(
+                titleSelector: titleSelector,
+                contentSelector: contentSelector,
+                nextChapterSelector: nextChapterSelector
+            )
+            
             while downloadedCount < preloadCount {
                 // 如果已缓存，跳过但继续下载下一章
-                if ChapterCacheManager.shared.isCached(url: currentURL) {
+                if repository.isChapterCached(url: currentURL) {
                     // 从缓存读取下一章URL
-                    if let cached = ChapterCacheManager.shared.getCachedChapter(url: currentURL),
+                    if let cached = try? await repository.getChapterContent(url: currentURL, config: config),
                        let nextURL = cached.nextChapterURL {
                         currentURL = nextURL
                         downloadedCount += 1
@@ -111,17 +102,7 @@ class NovelReaderViewModel: ObservableObject {
                 }
                 
                 do {
-                    let parser = HTMLParser()
-                    let result = try await parser.parseNovelPage(
-                        url: currentURL,
-                        titleSelector: titleSelector,
-                        contentSelector: contentSelector,
-                        nextChapterSelector: nextChapterSelector,
-                        mode: parseMode
-                    )
-                    
-                    // 缓存预下载的章节
-                    ChapterCacheManager.shared.cacheChapter(result, url: currentURL)
+                    let result = try await repository.getChapterContent(url: currentURL, config: config)
                     
                     downloadedCount += 1
                     
@@ -131,18 +112,11 @@ class NovelReaderViewModel: ObservableObject {
                     } else {
                         break  // 没有下一章了
                     }
-                    
-                    // 避免请求过快
-                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒
-                    
                 } catch {
-                    // 预下载失败不影响用户体验，静默处理
                     print("预下载章节失败: \(error)")
                     break
                 }
             }
-            
-            print("✅ 预下载完成: \(downloadedCount) 章")
         }
     }
     

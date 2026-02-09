@@ -27,6 +27,7 @@
 		A6A149F20DA4B20175953992 /* CatalogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC4BC8DA3B94F08A7FF04C17 /* CatalogView.swift */; };
 		A6E5369BFEBD2CA5D501D3B3 /* ZhiMangXing-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3B5835FA84216CF8E7B56826 /* ZhiMangXing-Regular.ttf */; };
 		B0DDC7D9A5FD20046F8B70B4 /* MaShanZheng-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 8E0C2A33CE8F20E586DE5781 /* MaShanZheng-Regular.ttf */; };
+		B873B0BB6013AC18FCC7B02D /* GenericParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018C44DE085BCD0AEF6235E8 /* GenericParser.swift */; };
 		BDB6087BF7293601E090EB85 /* ZCOOLKuaiLe-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B17E87A7DE29BD941C447874 /* ZCOOLKuaiLe-Regular.ttf */; };
 		C4F3DA4EA307C1D0CAF295B9 /* LongCang-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A09AC5A156454B5AB270C5EC /* LongCang-Regular.ttf */; };
 		CAC76973E3B5E49964988A08 /* NovelRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52E5D9FFC65CFB5B01FD6009 /* NovelRepository.swift */; };
@@ -34,10 +35,12 @@
 		DB65F42497285918AE27C199 /* ChapterCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20BA478508922B15FA99EC3B /* ChapterCacheManager.swift */; };
 		E3FB548114DD25D82B95E6BB /* DownloadManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 256BA70AEEE552CCCD59A4F7 /* DownloadManager.swift */; };
 		F01C3B2D48EA46456337598C /* NotoSerifSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3A47CD7E5C2970BE39427713 /* NotoSerifSC-Regular.otf */; };
+		FDF596B4BC76AC160084E175 /* SiteConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA13129B2458DDB256DB6D50 /* SiteConfig.swift */; };
 		FE9DEFBA34274D3C51160D69 /* CuocengParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2F46B3A310199860839BA93 /* CuocengParser.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		018C44DE085BCD0AEF6235E8 /* GenericParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericParser.swift; sourceTree = "<group>"; };
 		04978C4B743522840C7A222A /* DownloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadView.swift; sourceTree = "<group>"; };
 		165569647A9060FD0EC89000 /* NovelReaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NovelReaderViewModel.swift; sourceTree = "<group>"; };
 		1A8D0D59D8E4C6F7416C3D24 /* ReadingSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettings.swift; sourceTree = "<group>"; };
@@ -64,6 +67,7 @@
 		AF080805CB5ABF001645B075 /* BookshelfViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfViewModel.swift; sourceTree = "<group>"; };
 		B05A6AB03C61906D724309D1 /* ReadingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadingSettingsView.swift; sourceTree = "<group>"; };
 		B17E87A7DE29BD941C447874 /* ZCOOLKuaiLe-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ZCOOLKuaiLe-Regular.ttf"; sourceTree = "<group>"; };
+		BA13129B2458DDB256DB6D50 /* SiteConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SiteConfig.swift; sourceTree = "<group>"; };
 		BA206C10422C8DA0F74062E3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		CE28D538A10E08389F758FF0 /* BookshelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfView.swift; sourceTree = "<group>"; };
 		EC9F3B28B027630852B2893A /* ReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReaderView.swift; sourceTree = "<group>"; };
@@ -92,6 +96,7 @@
 				4B3F69CFAA9545E73EA623A4 /* DataSource.swift */,
 				256BA70AEEE552CCCD59A4F7 /* DownloadManager.swift */,
 				04978C4B743522840C7A222A /* DownloadView.swift */,
+				018C44DE085BCD0AEF6235E8 /* GenericParser.swift */,
 				3568F8D7F3030892A829D26B /* HTMLParser.swift */,
 				BA206C10422C8DA0F74062E3 /* Info.plist */,
 				742D19674C7C7B9DDC37DFCB /* Models.swift */,
@@ -101,6 +106,7 @@
 				EC9F3B28B027630852B2893A /* ReaderView.swift */,
 				1A8D0D59D8E4C6F7416C3D24 /* ReadingSettings.swift */,
 				B05A6AB03C61906D724309D1 /* ReadingSettingsView.swift */,
+				BA13129B2458DDB256DB6D50 /* SiteConfig.swift */,
 				7E6F6F30BCC3BA698EBF1BF0 /* SiteParser.swift */,
 				A39066B592D04C430546F986 /* Fonts */,
 			);
@@ -220,6 +226,7 @@
 				797FD46A2F2315F6BBD8B656 /* DataSource.swift in Sources */,
 				E3FB548114DD25D82B95E6BB /* DownloadManager.swift in Sources */,
 				82CDFE5E6A7FAF575C5C3A66 /* DownloadView.swift in Sources */,
+				B873B0BB6013AC18FCC7B02D /* GenericParser.swift in Sources */,
 				518F71DAD14B45E724A8807F /* HTMLParser.swift in Sources */,
 				252653135592EB959AEA4518 /* Models.swift in Sources */,
 				3A8C8CA88C6AC290FD70A5B9 /* NovelReaderApp.swift in Sources */,
@@ -228,6 +235,7 @@
 				1268FA7D11536DE327004B3F /* ReaderView.swift in Sources */,
 				809CC10F963099DBB10F1F55 /* ReadingSettings.swift in Sources */,
 				D1EBD61789EDFCB4F85EAA29 /* ReadingSettingsView.swift in Sources */,
+				FDF596B4BC76AC160084E175 /* SiteConfig.swift in Sources */,
 				914E3B51BFDCA706804C8256 /* SiteParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

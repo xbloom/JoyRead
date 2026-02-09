@@ -4,7 +4,7 @@ import Foundation
 class RemoteDataSource {
     
     /// 从URL获取小说信息
-    func fetchNovel(fromURL url: String, config: ParserConfig) async throws -> Novel {
+    func fetchNovel(fromURL url: String) async throws -> Novel {
         guard let parser = SiteParserFactory.parser(for: url) else {
             throw DataError.unsupportedSite
         }
@@ -22,7 +22,7 @@ class RemoteDataSource {
             currentChapterURL: completeInfo.chapters.first?.url,
             currentChapterTitle: completeInfo.chapters.first?.title,
             lastReadDate: Date(),
-            parserConfig: config
+            parserConfig: completeInfo.parserConfig
         )
     }
     

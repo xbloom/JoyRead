@@ -9,6 +9,7 @@ struct CompleteBookInfo {
     let introduction: String?
     let catalogURL: String
     let chapters: [Chapter]
+    let parserConfig: ParserConfig
 }
 
 /// 网站解析器协议
@@ -26,10 +27,15 @@ protocol SiteParser {
 /// 网站解析器工厂
 class SiteParserFactory {
     static func parser(for url: String) -> SiteParser? {
+        // 错层网使用专用解析器（封面提取更准确）
         if url.contains("cuoceng.com") {
             return CuocengParser()
         }
-        // 后续添加其他网站
-        return nil
+        
+        // 其他网站使用通用解析器
+        guard let config = SiteConfig.config(for: url) else {
+            return nil
+        }
+        return GenericParser(config: config)
     }
 }

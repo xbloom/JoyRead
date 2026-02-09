@@ -2,9 +2,7 @@ import SwiftUI
 
 struct DownloadView: View {
     let catalogURL: String
-    let titleSelector: String
-    let contentSelector: String
-    let nextChapterSelector: String
+    let parserConfig: ParserConfig
     
     @StateObject private var downloadManager = DownloadManager()
     @StateObject private var catalogViewModel = CatalogViewModel()
@@ -144,9 +142,7 @@ struct DownloadView: View {
     private func downloadAll() {
         downloadManager.downloadChapters(
             chapters: catalogViewModel.chapters,
-            titleSelector: titleSelector,
-            contentSelector: contentSelector,
-            nextChapterSelector: nextChapterSelector
+            config: parserConfig
         )
     }
     
@@ -154,9 +150,7 @@ struct DownloadView: View {
         let chaptersToDownload = Array(catalogViewModel.chapters.prefix(50))
         downloadManager.downloadChapters(
             chapters: chaptersToDownload,
-            titleSelector: titleSelector,
-            contentSelector: contentSelector,
-            nextChapterSelector: nextChapterSelector
+            config: parserConfig
         )
     }
     

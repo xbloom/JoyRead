@@ -14,9 +14,9 @@ class NovelRepository {
     // MARK: - 小说管理
     
     /// 从URL添加小说
-    func addNovel(fromURL url: String, config: ParserConfig = .default) async throws -> Novel {
-        // 1. 从网络获取小说信息
-        let novel = try await remoteDataSource.fetchNovel(fromURL: url, config: config)
+    func addNovel(fromURL url: String) async throws -> Novel {
+        // 1. 从网络获取小说信息（包含 parserConfig）
+        let novel = try await remoteDataSource.fetchNovel(fromURL: url)
         
         // 2. 保存到本地
         try localStorage.saveNovel(novel)
@@ -36,7 +36,16 @@ class NovelRepository {
     
     /// 删除小说
     func deleteNovel(_ novel: Novel) throws {
+        // 1. 删除章节缓存
+        for chapter in novel.chapters {
+            ChapterCacheManager.shared.deleteCachedChapter(url: chapter.url)
+        }
+        
+        // 2. 删除小说记录
         try localStorage.deleteNovel(novel)
+        
+        print("🗑️ 已删除书籍: \(novel.title)")
+        print("   清理了 \(novel.chapters.count) 个章节缓存")
     }
     
     // MARK: - 章节管理

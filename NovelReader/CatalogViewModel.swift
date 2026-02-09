@@ -6,18 +6,20 @@ class CatalogViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     
+    private let repository = NovelRepository()
+    
     func loadCatalog(url: String) {
         isLoading = true
         errorMessage = nil
         
         Task {
             do {
-                let parser = HTMLParser()
-                let (info, chapterList) = try await parser.parseBook(fromURL: url)
+                // 使用 Repository 重新获取书籍信息
+                let novel = try await repository.addNovel(fromURL: url)
                 
                 await MainActor.run {
-                    self.bookInfo = info
-                    self.chapters = chapterList
+                    self.bookInfo = novel
+                    self.chapters = novel.chapters
                     self.isLoading = false
                 }
             } catch {

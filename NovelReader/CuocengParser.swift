@@ -25,6 +25,13 @@ class CuocengParser: SiteParser {
         let catalogHTML = try await downloadHTML(url: catalogURL)
         let chapters = try extractChapters(from: catalogHTML, bookId: bookId)
         
+        // 5. 创建 ParserConfig
+        let parserConfig = ParserConfig(
+            titleSelector: "h1",
+            contentSelector: "#readcontent",
+            nextChapterSelector: "a.next"
+        )
+        
         return CompleteBookInfo(
             bookId: bookId,
             title: title,
@@ -32,7 +39,8 @@ class CuocengParser: SiteParser {
             coverURL: coverURL,
             introduction: introduction,
             catalogURL: catalogURL,
-            chapters: chapters
+            chapters: chapters,
+            parserConfig: parserConfig
         )
     }
     

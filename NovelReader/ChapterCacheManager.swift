@@ -79,6 +79,11 @@ class ChapterCacheManager {
         try? fileManager.removeItem(at: fileURL)
     }
     
+    /// 删除指定章节缓存（别名）
+    func deleteCachedChapter(url: String) {
+        removeCache(url: url)
+    }
+    
     /// 清空所有缓存
     func clearAllCache() {
         try? fileManager.removeItem(at: cacheDirectory)

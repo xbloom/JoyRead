@@ -8,14 +8,12 @@ class DownloadManager: ObservableObject {
     @Published var errorMessage: String?
     
     private var downloadTask: Task<Void, Never>?
+    private let repository = NovelRepository()
     
     /// 下载指定范围的章节
     func downloadChapters(
         chapters: [Chapter],
-        titleSelector: String,
-        contentSelector: String,
-        nextChapterSelector: String,
-        parseMode: ParseMode = .regex
+        config: ParserConfig
     ) {
         guard !isDownloading else { return }
         
@@ -26,8 +24,6 @@ class DownloadManager: ObservableObject {
         errorMessage = nil
         
         downloadTask = Task {
-            let parser = HTMLParser()
-            
             for (index, chapter) in chapters.enumerated() {
                 // 检查是否已取消
                 if Task.isCancelled {
@@ -35,7 +31,7 @@ class DownloadManager: ObservableObject {
                 }
                 
                 // 如果已缓存，跳过
-                if ChapterCacheManager.shared.isCached(url: chapter.url) {
+                if repository.isChapterCached(url: chapter.url) {
                     await MainActor.run {
                         self.downloadedCount = index + 1
                         self.downloadProgress = Double(index + 1) / Double(totalCount)
@@ -44,16 +40,7 @@ class DownloadManager: ObservableObject {
                 }
                 
                 do {
-                    let result = try await parser.parseNovelPage(
-                        url: chapter.url,
-                        titleSelector: titleSelector,
-                        contentSelector: contentSelector,
-                        nextChapterSelector: nextChapterSelector,
-                        mode: parseMode
-                    )
-                    
-                    // 缓存章节
-                    ChapterCacheManager.shared.cacheChapter(result, url: chapter.url)
+                    _ = try await repository.getChapterContent(url: chapter.url, config: config)
                     
                     await MainActor.run {
                         self.downloadedCount = index + 1
@@ -61,13 +48,14 @@ class DownloadManager: ObservableObject {
                     }
                     
                     // 避免请求过快，稍微延迟
-                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 0.3秒
                     
                 } catch {
                     await MainActor.run {
                         self.errorMessage = "下载失败: \(error.localizedDescription)"
                     }
-                    break
+                    // 单个章节失败不中断，继续下载
+                    print("下载章节失败: \(chapter.title) - \(error)")
                 }
             }
             

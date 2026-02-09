@@ -21,6 +21,8 @@ let package = Package(
                 // 解析层
                 "HTMLParser.swift",
                 "SiteParser.swift",
+                "SiteConfig.swift",
+                "GenericParser.swift",
                 "CuocengParser.swift",
                 // 工具类
                 "ChapterCacheManager.swift",

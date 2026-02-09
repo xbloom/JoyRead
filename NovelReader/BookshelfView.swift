@@ -49,6 +49,18 @@ struct NovelshelfView: View {
             }
             .navigationTitle("书架")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Menu {
+                        Button(role: .destructive, action: {
+                            viewModel.clearAllData()
+                        }) {
+                            Label("清理所有数据", systemImage: "trash")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
                         showAddNovel = true
@@ -147,9 +159,21 @@ struct NovelCardView: View {
     }
     
     private func loadCoverImage() {
-        guard let coverURLString = book.coverURL,
-              let url = URL(string: coverURLString),
-              coverImage == nil else {
+        guard let coverURLString = book.coverURL else {
+            print("❌ 封面URL为空: \(book.title)")
+            return
+        }
+        
+        print("📷 开始加载封面: \(book.title)")
+        print("   URL: \(coverURLString)")
+        
+        guard let url = URL(string: coverURLString) else {
+            print("❌ 无效的URL: \(coverURLString)")
+            return
+        }
+        
+        guard coverImage == nil else {
+            print("✅ 封面已缓存")
             return
         }
         
@@ -157,20 +181,31 @@ struct NovelCardView: View {
         
         Task {
             do {
-                let (data, _) = try await URLSession.shared.data(from: url)
+                print("🌐 正在下载封面...")
+                let (data, response) = try await URLSession.shared.data(from: url)
+                
+                if let httpResponse = response as? HTTPURLResponse {
+                    print("📡 HTTP状态: \(httpResponse.statusCode)")
+                }
+                
+                print("📦 下载完成，数据大小: \(data.count) bytes")
+                
                 if let image = UIImage(data: data) {
                     await MainActor.run {
                         self.coverImage = image
                         self.isLoadingCover = false
+                        print("✅ 封面加载成功")
                     }
                 } else {
                     await MainActor.run {
                         self.isLoadingCover = false
+                        print("❌ 无法解析图片数据")
                     }
                 }
             } catch {
                 await MainActor.run {
                     self.isLoadingCover = false
+                    print("❌ 下载失败: \(error)")
                 }
             }
         }
@@ -188,9 +223,6 @@ struct AddNovelView: View {
     @Environment(\.dismiss) var dismiss
     
     @State private var chapterURL: String = ""
-    @State private var titleSelector: String = "h1"
-    @State private var contentSelector: String = "#readcontent"
-    @State private var nextChapterSelector: String = "a.next"
     @State private var isLoading: Bool = false
     @State private var errorMessage: String?
     
@@ -202,16 +234,12 @@ struct AddNovelView: View {
                         .autocapitalization(.none)
                         .keyboardType(.URL)
                     
-                    Text("支持从任意章节开始，会自动获取书籍信息")
+                    Text("支持错层网、零点看书等网站，自动识别并配置")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
-                Section(header: Text("CSS选择器配置（可选）")) {
-                    TextField("标题选择器", text: $titleSelector)
-                    TextField("内容选择器", text: $contentSelector)
-                    TextField("下一章选择器", text: $nextChapterSelector)
-                }
+                // CSS 选择器配置已自动处理，不再需要手动输入
                 
                 if isLoading {
                     Section {
@@ -253,34 +281,12 @@ struct AddNovelView: View {
         
         Task {
             do {
-                let parser = HTMLParser()
+                let repository = NovelRepository()
                 
-                // 自动识别页面类型并获取完整信息
-                let (bookInfo, chapters) = try await parser.parseBook(fromURL: chapterURL)
+                // 使用 Repository 自动识别网站并获取完整信息（包含正确的 parserConfig）
+                let novel = try await repository.addNovel(fromURL: chapterURL)
                 
                 await MainActor.run {
-                    // 判断用户输入的URL是否是有效的章节URL
-                    let isChapterURL = chapterURL.range(of: "/book/[a-f0-9-]+/[a-f0-9-]+\\.html", options: .regularExpression) != nil
-                    
-                    // 如果不是章节URL，使用第一章作为初始章节
-                    let initialChapterURL = isChapterURL ? chapterURL : (chapters.first?.url ?? chapterURL)
-                    
-                    let novel = Novel(
-                        id: bookInfo.id,
-                        title: bookInfo.title,
-                        author: bookInfo.author,
-                        coverURL: bookInfo.coverURL,
-                        introduction: bookInfo.introduction,
-                        catalogURL: bookInfo.catalogURL,
-                        chapters: bookInfo.chapters,
-                        currentChapterURL: initialChapterURL,
-                        parserConfig: ParserConfig(
-                            titleSelector: titleSelector,
-                            contentSelector: contentSelector,
-                            nextChapterSelector: nextChapterSelector
-                        )
-                    )
-                    
                     viewModel.addNovel(novel)
                     isLoading = false
                     dismiss()

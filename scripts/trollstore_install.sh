@@ -151,10 +151,10 @@ EOF
 # 4. 生成安装链接
 WEB_URL="http://${IP}:${PORT}/"
 
-# 5. 自动复制链接到剪贴板
-echo "$WEB_URL" | pbcopy
-echo "✅ 安装链接已复制到剪贴板"
-echo ""
+# # 5. 自动复制链接到剪贴板
+# echo "$WEB_URL" | pbcopy
+# echo "✅ 安装链接已复制到剪贴板"
+# echo ""
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "📱 iPad 安装步骤："
