@@ -7,7 +7,10 @@ iOS 小说阅读器，支持从网页解析小说内容，带书架管理、目�
 ## 快速开始
 
 ```bash
-# 安装到 iPad
+# TrollStore 一键安装（推荐，无需数据线）
+make trollstore
+
+# 有线安装到 iPad
 make install
 
 # 运行测试
@@ -63,6 +66,10 @@ make clean
 ## 项目结构
 
 ```
+scripts/                          # 构建脚本
+├── trollstore_install.sh         # TrollStore 一键安装
+└── build_ipa.sh                  # IPA 构建脚本
+
 NovelReader/                      # iOS 应用代码
 ├── NovelReaderApp.swift          # 入口
 ├── BookshelfView.swift           # 书架界面
