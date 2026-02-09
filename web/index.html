@@ -142,6 +142,25 @@
             line-height: 1.8;
         }
         
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px 16px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        
+        .warning-box p {
+            margin: 0;
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .warning-box strong {
+            color: #856404;
+        }
+        
         .github-link {
             display: inline-flex;
             align-items: center;
@@ -187,9 +206,14 @@
         <div class="error" id="error">获取失败，请稍后重试</div>
         
         <div class="install-guide">
+            <div class="warning-box">
+                <p><strong>⚠️ 重要提示</strong></p>
+                <p>本应用目前仅在 TrollStore（iOS 14.0 - 16.6.1）上测试通过。其他安装方式（如 AltStore、巨魔等）请自行测试。</p>
+            </div>
+            
             <h3>📱 安装方法</h3>
             <ol>
-                <li>确保设备已安装 TrollStore（支持 iOS 14.0 - 16.6.1）</li>
+                <li>确保设备已安装 TrollStore</li>
                 <li>点击上方按钮下载 IPA 文件</li>
                 <li>使用 TrollStore 打开下载的文件</li>
                 <li>点击安装即可使用</li>
