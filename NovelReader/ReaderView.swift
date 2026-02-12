@@ -102,9 +102,9 @@ struct ReaderView: View {
                                         dragOffset = value.translation.width
                                         
                                         // 判断拖动方向
-                                        if value.translation.width > 20 {
+                                        if value.translation.width > 15 {
                                             dragDirection = .right
-                                        } else if value.translation.width < -20 {
+                                        } else if value.translation.width < -15 {
                                             dragDirection = .left
                                         }
                                     }
@@ -112,7 +112,7 @@ struct ReaderView: View {
                                         isDragging = false
                                         dragDirection = nil
                                         
-                                        let threshold: CGFloat = 100
+                                        let threshold: CGFloat = 60
                                         if value.translation.width > threshold {
                                             // 右滑 - 上一章
                                             if viewModel.hasPreviousChapter {
@@ -137,8 +137,8 @@ struct ReaderView: View {
                             
                             // 左侧拖动指示器
                             if isDragging && dragDirection == .right {
-                                let progress = min(abs(dragOffset) / 100, 1.0)
-                                let canFlip = progress > 0.99
+                                let progress = min(abs(dragOffset) / 60, 1.0)
+                                let canFlip = progress > 0.7
                                 
                                 HStack {
                                     VStack(spacing: 8) {
@@ -176,8 +176,8 @@ struct ReaderView: View {
                             
                             // 右侧拖动指示器
                             if isDragging && dragDirection == .left {
-                                let progress = min(abs(dragOffset) / 100, 1.0)
-                                let canFlip = progress > 0.99
+                                let progress = min(abs(dragOffset) / 60, 1.0)
+                                let canFlip = progress > 0.7
                                 
                                 HStack {
                                     Spacer()
