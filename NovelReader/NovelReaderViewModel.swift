@@ -41,7 +41,11 @@ class NovelReaderViewModel: ObservableObject {
             return
         }
         
-        isLoading = true
+        // 只在没有缓存时显示加载状态
+        let isCached = repository.isChapterCached(url: currentURL)
+        if !isCached {
+            isLoading = true
+        }
         errorMessage = nil
         
         Task {
